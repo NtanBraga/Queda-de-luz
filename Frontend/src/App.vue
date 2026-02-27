@@ -1,4 +1,9 @@
-<script setup lang="ts"></script>
+
+<script setup lang="ts">
+import './assets/styles/App.css'
+
+</script>
+
 
 <template>
   <h1>You did it!</h1>
@@ -8,4 +13,3 @@
   </p>
 </template>
 
-<style scoped></style>
