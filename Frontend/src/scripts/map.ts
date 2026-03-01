@@ -22,10 +22,10 @@ export async function initMap(elementId: string) {
         elementType: "labels.text.stroke", stylers: [{ color: "#242f3e"}]
     },
     {
-        elementType: "labels.text.fill", stylers: [{ color: "#746855"}]
+        elementType: "labels.text.fill", stylers: [{ color: "#eeeae4"}]
     },
     {
-        featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563"}]
+        featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#eeeae4"}]
     },
     {
         featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563"}]
@@ -46,13 +46,13 @@ export async function initMap(elementId: string) {
         featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3"}]
     },
     {
-        featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855"}]
+        featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#38414e"}]
     },
     {
-        featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835"}]
+        featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#212a37"}]
     },
     {
-        featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c"}]
+        featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3"}]
     },
     {
         featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c"}]
@@ -131,11 +131,11 @@ export async function initMap(elementId: string) {
 
       new google.maps.Polygon({
         paths: poaPaths,
-        strokeColor: 'darkgray',
+        strokeColor: '#00d4ff',
         strokeOpacity: 0.2,
         strokeWeight: 1,
-        fillColor: 'gray',
-        fillOpacity: 0.8,
+        fillColor: '#000000',
+        fillOpacity: 0.85,
         map: mapOutput,
         clickable: false,
         zIndex: 999,
