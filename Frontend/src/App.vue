@@ -1,5 +1,11 @@
 <script setup lang="ts">
-  
+  import { onMounted } from 'vue';
+  import {initMap} from './scripts/map.ts';
+
+  onMounted(async () => {
+    await initMap('map-canvas');
+  });
+
 </script>
 
 <style lang="scss">
@@ -20,6 +26,6 @@
         <li class="lista-items-bairros-sem-luz"><strong>Bairro sem luz 5</strong></li>
       </ul>
     </div>
-    <div class="box-map"><h1>Map</h1></div>
+    <div class="box-map" id="map-canvas"><h1>Map</h1></div>
   </div>
 </template>
