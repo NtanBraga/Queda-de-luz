@@ -6,7 +6,7 @@
 
 <template>
   <div class="above-content">
-    <div class="box-news"><h1>News</h1></div>
+    <div class="box-news"><h1 class="placard-h1">News</h1></div>
   </div>
   <div class="below-content">
     <div class="box-power-outage"><h1>Power Outage</h1></div>

@@ -4,6 +4,15 @@
   align-items: center;
 }
 
+@keyframes placard {
+  0% {
+    transform: translateX(100vw);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -22,33 +31,48 @@ body,
   width: 100%;
   height: 10%;
   position: absolute;
-  z-index: 10;
+  z-index: 3;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+
   .box-news {
     background-color: red;
     width: 100%;
-    height: 100%;
-    @include display-on-center;
+    white-space: nowrap;
+    .placard-h1{
+      display: inline-block;
+      animation: placard 12s linear infinite;
+    }
+
   }
+  .placard-h1:hover {
+    cursor: pointer;
+    animation-play-state: paused;
+  }    
 }
 .below-content {
   background-color: orange;
   width: 100%;
   height: 100%;
   position: absolute;
-  display: flex;
+  
   .box-power-outage {
     background-color: blue;
     width: 25%;
     height: 100%;
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     @include display-on-center;
   }
+  
   .box-map {
     background-color: green;
     width: 100%;
     height: 100%;
     position: absolute;
+    z-index: 1;
     @include display-on-center;
   }
+
 }
