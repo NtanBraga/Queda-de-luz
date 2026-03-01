@@ -17,6 +17,7 @@ onMounted(async () => {
   </div>
   <div class="below-content">
     <div class="box-power-outage">
+      <h2 class="box-power-outrage-h2">Bairros sem luz</h2>
       <ul class="lista-bairros-sem-luz">
         <li class="lista-items-bairros-sem-luz"><strong>Bairro sem luz 1</strong></li>
         <li class="lista-items-bairros-sem-luz"><strong>Bairro sem luz 2</strong></li>
