@@ -1,1 +1,11 @@
-#@Backend_HostAddress = http://localhost:5176
+@BlackoutMap_HostAddress = http://localhost:5176
+
+
+### Criar Canvas
+POST {{BlackoutMap_HostAddress}}/cidade
+Content-Type: application/json
+
+{
+    "Nome":"a",
+    "EstadoSigla":"b"
+}
