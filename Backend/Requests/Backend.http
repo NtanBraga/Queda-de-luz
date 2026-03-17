@@ -1,0 +1,14 @@
+@BlackoutMap_HostAddress = http://localhost:5176
+
+
+POST {{BlackoutMap_HostAddress}}/cidade
+Content-Type: application/json
+
+{
+    "Nome":"a",
+    "EstadoSigla":"b"
+}
+
+
+GET {{BlackoutMap_HostAddress}}/cidade/3
+Accept: application/json
