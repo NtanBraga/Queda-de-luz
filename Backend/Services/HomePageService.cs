@@ -42,25 +42,29 @@ public class HomePageService : IHomePageService
         return result.ToList();
     }
 
-    public async Task<List<long>?> GetCidadeAsync(int id)
+    public async Task<Report> PostReportAsync(Report report)
     {
         using var dbContext = await this._dbConnectionFactory.CreateConnectionAsync();
 
-        var result = await dbContext.QueryAsync<long>(
-            """
-            SELECT Cidade_Id
-            FROM Cidade
-            """
+        Report result = await dbContext.QuerySingleAsync<Report>(
+            $"""
+            INSERT INTO Report (Problem_Category_id, Reported_District_id, Base_Account_id) 
+            VALUES (@ProblemCategory_Id, @District_Id, @AccountId) 
+            RETURNING *;
+            """,
+            new{ ProblemCategory_Id = report.ProblemCategoryId, 
+                 District_Id = report.ReportedDistrictId,
+                 AccountId = report.AccountId is not null ? report.AccountId : null}
         );
 
         await dbContext.CloseAsync();
 
-        return result.ToList();
+        return result;
     }
 }
 
 public interface IHomePageService
 {
     public Task<List<District>> GetDistrictsAsync(int city_id);
-    public Task<List<long>?> GetCidadeAsync(int id);
+    public Task<Report> PostReportAsync(Report report);
 }

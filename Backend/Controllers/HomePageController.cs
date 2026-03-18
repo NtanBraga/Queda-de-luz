@@ -17,21 +17,27 @@ public class HomePageController : ControllerBase
     public async Task<IActionResult> GetDistrictsAsync(int city_id)
     {
         List<District> districts = await this._homePageService.GetDistrictsAsync(city_id);
+        if(districts is null || districts.Count <= 0){ return NotFound(); }
 
         GetDistrictsResponse response = DistrictMapping.ToGetDistrictsResponse(districts);
 
         return Ok(response);
     }
 
-    [HttpGet("/cidade/{id}")]
-    public async Task<IActionResult> GetCidadeAsync(int id)
+
+    [HttpPost]
+     [Route("city/{city_id}/district/{district_id}/reports")]
+    public async Task<IActionResult> PostReportAsync(int city_id, int district_id, PostReportRequest request)
     {
-        var cidades = await this._homePageService.GetCidadeAsync(id);
+        //<<TODO: to validate city--district relation>>
+        //<<TODO: if userId not null, then validate its existence>>
 
-        if(cidades is null){ return NotFound(); }
+        Report report = request.ToReport(district_id);
+        report = await this._homePageService.PostReportAsync(report);
 
-        //var response = new GetCidadeResponse(cidade.Id, cidade.Nome, cidade.EstadoSigla);
-
-        return Ok(cidades);
+        PostReportResponse response = report.ToPostReportResponse();
+        
+        //<<TODO: to create a GET endpoint to access reports>>
+        return Ok(response);
     }
 }
