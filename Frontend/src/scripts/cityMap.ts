@@ -17,15 +17,18 @@ export const fetchCityBounds = async (cityName: string): Promise<CityBounds> => 
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url)
     const data = await response.json()
 
-    if(!data.length) throw new Error("Local não encontrado");
+    if (!data.length) throw new Error('Local não encontrado')
 
-    const [ south, north, west, east ] = data[0].boundingbox.map(Number)
+    const [south, north, west, east] = data[0].boundingbox.map(Number)
 
     return {
-      north, south, east, west
+      north,
+      south,
+      east,
+      west,
     }
   } catch (e) {
     console.error('Erro ao puxar dados da cidade: ', e)
@@ -39,31 +42,32 @@ export const fetchCityBounds = async (cityName: string): Promise<CityBounds> => 
   }
 }
 
-export const fetchCityOutline = async (cityName: string): Promise<google.maps.LatLngLiteral[][]> => {
+export const fetchCityOutline = async (
+  cityName: string,
+): Promise<google.maps.LatLngLiteral[][]> => {
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&polygon_geojson=1&limit=1`
-
 
   try {
     const response = await fetch(url)
     const data = await response.json()
 
-    if(!data.length || !data[0].geojson) return []
+    if (!data.length || !data[0].geojson) return []
 
-    const geojson = data[0].geojson;
-    const paths: google.maps.LatLngLiteral[][] = [];
+    const geojson = data[0].geojson
+    const paths: google.maps.LatLngLiteral[][] = []
 
-    if(geojson.type === 'Polygon'){
-        geojson.coordinates.forEach((ring: any) => {
-            paths.push(ring.map(([lng, lat]: [number, number]) => ({ lat, lng})))
+    if (geojson.type === 'Polygon') {
+      geojson.coordinates.forEach((ring: any) => {
+        paths.push(ring.map(([lng, lat]: [number, number]) => ({ lat, lng })))
+      })
+    } else if (geojson.type === 'MultiPolygon') {
+      geojson.coordinates.forEach((polygon: any) => {
+        polygon.forEach((ring: any) => {
+          paths.push(ring.map(([lng, lat]: [number, number]) => ({ lat, lng })))
         })
-    }else if (geojson.type === 'MultiPolygon') {
-        geojson.coordinates.forEach((polygon: any) => {
-            polygon.forEach((ring: any) => {
-                paths.push(ring.map(([lng, lat]: [number, number]) => ({ lat, lng })))
-            })
-        })
+      })
     }
-    return paths;
+    return paths
   } catch (e) {
     console.error('Erro ao contornar cidade: ', e)
     return []
@@ -75,13 +79,13 @@ export const createCityMask = (map: google.maps.Map, cityPath: google.maps.LatLn
 
   const processRing = (path: google.maps.LatLngLiteral[]): google.maps.LatLngLiteral[] => {
     const area = google.maps.geometry.spherical.computeSignedArea(path)
-    if(area < 0) path.reverse()
+    if (area < 0) path.reverse()
     return path
   }
 
   cityPath.forEach((path) => {
-    if(path.length >= 3){
-        maskPaths.push(processRing(path))
+    if (path.length >= 3) {
+      maskPaths.push(processRing(path))
     }
   })
 

@@ -6,7 +6,15 @@ const openMenu = ref(true)
 const openChat = ref(true)
 const newMessage = ref('')
 
+const activeTab = ref('chat')
+
+const loggedUser = ref(false)
+
 const messages = ref([{ user: 'Test', text: 'Mensagem de teste.' }])
+
+const toggleProfileChatView = () => {
+  activeTab.value = activeTab.value === 'chat' ? 'profile' : 'chat'
+}
 
 const sendMessage = () => {
   if (newMessage.value.trim()) {
@@ -55,22 +63,55 @@ onMounted(async () => {
     <div class="box-map" id="map-canvas"><h1>Map</h1></div>
     <div class="box-chat" :class="{ isHidden: !openChat }">
       <div class="box-chat-header">
-        <h2 class="box-chat-header-h2">CHAT COMUNITARIO</h2>
+        <div class="box-chat-verify-logged" @click="toggleProfileChatView">
+          <div class="box-chat-profile-image" :class="{ 'is-logged': loggedUser}"></div>
+          <span class="box-chat-islogged-text">{{
+            activeTab === 'chat' ? (loggedUser ? 'Meu perfil' : 'Entrar / Cadastro') : 'Voltar ao chat'
+          }}</span>
+        </div>
         <button class="box-chat-button" @click="openChat = false">X</button>
       </div>
-      <div class="box-chat-messages">
-        <div v-for="(msg, index) in messages" :key="index" class="message">
-          <strong>{{ msg.user }}: </strong>{{ msg.text }}
-        </div>
-      </div>
-      <div class="box-chat-input">
-        <input
-          v-model="newMessage"
-          type="text"
-          placeholder="Digite algo..."
-          @keyup.enter="sendMessage"
-        />
-        <button @click="sendMessage">➤</button>
+      <div class="box-chat-content">
+        <Transition name="slide" mode="out-in">
+          <div v-if="activeTab === 'chat'" key="chat" class="box-chat-viewchat">
+            <div class="box-chat-messages">
+              <div v-for="(msg, index) in messages" :key="index" class="message">
+                <strong>{{ msg.user }}: </strong>{{ msg.text }}
+              </div>
+            </div>
+            <div class="box-chat-input">
+              <input
+                v-model="newMessage"
+                type="text"
+                placeholder="Digite algo..."
+                @keyup.enter="sendMessage"
+              />
+              <button @click="sendMessage">➤</button>
+            </div>
+          </div>
+          <div v-else key="profile" class="box-chat-viewprofile">
+            <div v-if="!loggedUser" class="box-chat-loginform">
+              <h3>Acessar a conta</h3>
+              <input type="text" placeholder="E-mail">
+              <input type="password" placeholder="Senha">
+              <button class="box-chat-loginform-button" @click="loggedUser = true">ENTRAR</button>
+            </div>
+            <div v-else class="box-chat-profile-table-container">
+              <table class="box-chat-profile-table">
+                <thead>
+                  <tr><th colspan="2">Dados do usuário</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Nome:</td><td> Visitante Teste</td></tr>
+                  <tr><td>Localização:</td><td> Porto Alegre, RS</td></tr>
+                  <tr><td>Status:</td><td><span class="status-online">Online</span></td></tr>
+                  <tr><td>Notificações:</td><td>Ativadas</td></tr>
+                </tbody>
+              </table>
+              <button class="box-chat-viewprofile-logoutbutton" @click="loggedUser = false">Sair da conta</button>
+            </div>
+          </div>
+        </Transition>
       </div>
     </div>
   </div>
