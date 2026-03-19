@@ -2,94 +2,6 @@
 import { createCityMask, fetchCityBounds, fetchCityOutline } from './cityMap'
 import { neighborhoodOutlines } from './neighborhoodMap'
 
-const darkMode: google.maps.MapTypeStyle[] = [
-  {
-    elementType: 'geometry',
-    stylers: [{ color: '#242f3e' }],
-  },
-  {
-    elementType: 'labels.text.stroke',
-    stylers: [{ color: '#242f3e' }],
-  },
-  {
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#eeeae4' }],
-  },
-  {
-    featureType: 'administrative.locality',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#eeeae4' }],
-  },
-  {
-    featureType: 'poi',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#d59563' }],
-  },
-  {
-    featureType: 'poi.park',
-    elementType: 'geometry',
-    stylers: [{ color: '#263c3f' }],
-  },
-  {
-    featureType: 'poi.park',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#6b9a76' }],
-  },
-  {
-    featureType: 'road',
-    elementType: 'geometry',
-    stylers: [{ color: '#38414e' }],
-  },
-  {
-    featureType: 'road',
-    elementType: 'geometry.stroke',
-    stylers: [{ color: '#212a37' }],
-  },
-  {
-    featureType: 'road',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#9ca5b3' }],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry',
-    stylers: [{ color: '#38414e' }],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry.stroke',
-    stylers: [{ color: '#212a37' }],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#9ca5b3' }],
-  },
-  {
-    featureType: 'water',
-    elementType: 'geometry',
-    stylers: [{ color: '#17263c' }],
-  },
-  {
-    featureType: 'water',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#515c6d' }],
-  },
-  {
-    featureType: 'water',
-    elementType: 'labels.text.stroke',
-    stylers: [{ color: '#17263c' }],
-  },
-  {
-    featureType: 'poi',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    featureType: 'transit',
-    stylers: [{ visibility: 'off' }],
-  },
-]
-
 export async function initMap(elementId: string) {
   const { Map } = (await google.maps.importLibrary('maps')) as google.maps.MapsLibrary
 
@@ -107,6 +19,7 @@ export async function initMap(elementId: string) {
 
   if (map) {
     const mapOutput = new Map(map, {
+      mapId: 'f469ad8968c9354b9e051197',
       center: { lat: -30.0351, lng: -51.17195 },
       zoom: 14,
       minZoom: 12,
@@ -115,10 +28,10 @@ export async function initMap(elementId: string) {
         latLngBounds: boundsCity,
         strictBounds: false,
       },
-      styles: darkMode,
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: false,
+      clickableIcons: false
     })
 
     createCityMask(mapOutput, outlineCity)

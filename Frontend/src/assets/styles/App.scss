@@ -243,7 +243,6 @@ body,
       opacity: 0;
       pointer-events: none;
       transform: translateY(2%) translateX(2%);
-
     }
 
     .box-chat-header {
@@ -255,17 +254,17 @@ body,
       margin-bottom: 15px;
 
       .box-chat-button {
-          background: none;
-          border: none;
-          color: white;
-          font-size: 1.2rem;
-          cursor: pointer;
-          &:hover {
-            color: red;
-          }
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        &:hover {
+          color: red;
         }
+      }
 
-      .box-chat-verify-logged{
+      .box-chat-verify-logged {
         display: flex;
         align-items: center;
         gap: 10px;
@@ -274,7 +273,7 @@ body,
         border-radius: 10px;
         transition: background 0.3s ease;
       }
-      .box-chat-profile-image{
+      .box-chat-profile-image {
         width: 24px;
         height: 24px;
         background: linear-gradient(45deg, #444, #888);
@@ -290,10 +289,8 @@ body,
       }
     }
 
-    
-
-    .box-chat-content{
-      flex:1;
+    .box-chat-content {
+      flex: 1;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -314,7 +311,7 @@ body,
         transform: translateX(-30px);
       }
 
-      .box-chat-viewprofile{
+      .box-chat-viewprofile {
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -322,21 +319,20 @@ body,
         flex: 1;
         padding: 10px 0;
 
-
-        .box-chat-loginform{
+        .box-chat-loginform {
           display: flex;
           flex-direction: column;
           gap: 15px;
-          
-          h3{
+
+          h3 {
             margin-bottom: 10px;
             text-align: center;
             color: $bg-color-primary;
           }
 
           input {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 12px;
             border-radius: 8px;
             color: white;
@@ -350,46 +346,51 @@ body,
             cursor: pointer;
           }
         }
-        .box-chat-profile-table-container{
+        .box-chat-profile-table-container {
           display: flex;
           flex-direction: column;
           flex: 1;
-          .box-chat-profile-table{
+          .box-chat-profile-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
-            background-color: rgba(255,255,255,0.03);
+            background-color: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
             overflow: hidden;
 
             th {
               padding: 15px;
-              background: rgba(255,255,255, 0.1);
+              background: rgba(255, 255, 255, 0.1);
               text-align: left;
               color: rgb(241, 210, 69);
             }
-            td{
+            td {
               padding: 12px 15px;
-              border-bottom: 1px solid rgba(255,255,255,0.05);
+              border-bottom: 1px solid rgba(255, 255, 255, 0.05);
               font-size: 0.9rem;
-              &:first-child { color: #888; width: 40%;}
+              &:first-child {
+                color: #888;
+                width: 40%;
+              }
             }
           }
-          .box-chat-viewprofile-logoutbutton{
+          .box-chat-viewprofile-logoutbutton {
             margin-top: auto;
             width: 100%;
             background: none;
-            border: 1px solid rgba(255,0,0, 0.3);
+            border: 1px solid rgba(255, 0, 0, 0.3);
             color: red;
             padding: 8px;
             border-radius: 8px;
             cursor: pointer;
-            &:hover { background: rgba(255,0,0,0.1);}
+            &:hover {
+              background: rgba(255, 0, 0, 0.1);
+            }
           }
         }
       }
 
-      .box-chat-viewchat{
+      .box-chat-viewchat {
         display: flex;
         flex-direction: column;
         height: 100%;
@@ -405,8 +406,13 @@ body,
           margin-bottom: 15px;
           padding-right: 5px;
 
-          &::-webkit-scrollbar{ width: 5px;}
-          &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px;}
+          &::-webkit-scrollbar {
+            width: 5px;
+          }
+          &::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+          }
 
           .message {
             background: rgba(255, 255, 255, 0.05);

@@ -64,9 +64,13 @@ onMounted(async () => {
     <div class="box-chat" :class="{ isHidden: !openChat }">
       <div class="box-chat-header">
         <div class="box-chat-verify-logged" @click="toggleProfileChatView">
-          <div class="box-chat-profile-image" :class="{ 'is-logged': loggedUser}"></div>
+          <div class="box-chat-profile-image" :class="{ 'is-logged': loggedUser }"></div>
           <span class="box-chat-islogged-text">{{
-            activeTab === 'chat' ? (loggedUser ? 'Meu perfil' : 'Entrar / Cadastro') : 'Voltar ao chat'
+            activeTab === 'chat'
+              ? loggedUser
+                ? 'Meu perfil'
+                : 'Entrar / Cadastro'
+              : 'Voltar ao chat'
           }}</span>
         </div>
         <button class="box-chat-button" @click="openChat = false">X</button>
@@ -92,23 +96,39 @@ onMounted(async () => {
           <div v-else key="profile" class="box-chat-viewprofile">
             <div v-if="!loggedUser" class="box-chat-loginform">
               <h3>Acessar a conta</h3>
-              <input type="text" placeholder="E-mail">
-              <input type="password" placeholder="Senha">
+              <input type="text" placeholder="E-mail" />
+              <input type="password" placeholder="Senha" />
               <button class="box-chat-loginform-button" @click="loggedUser = true">ENTRAR</button>
             </div>
             <div v-else class="box-chat-profile-table-container">
               <table class="box-chat-profile-table">
                 <thead>
-                  <tr><th colspan="2">Dados do usuário</th></tr>
+                  <tr>
+                    <th colspan="2">Dados do usuário</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  <tr><td>Nome:</td><td> Visitante Teste</td></tr>
-                  <tr><td>Localização:</td><td> Porto Alegre, RS</td></tr>
-                  <tr><td>Status:</td><td><span class="status-online">Online</span></td></tr>
-                  <tr><td>Notificações:</td><td>Ativadas</td></tr>
+                  <tr>
+                    <td>Nome:</td>
+                    <td>Visitante Teste</td>
+                  </tr>
+                  <tr>
+                    <td>Localização:</td>
+                    <td>Porto Alegre, RS</td>
+                  </tr>
+                  <tr>
+                    <td>Status:</td>
+                    <td><span class="status-online">Online</span></td>
+                  </tr>
+                  <tr>
+                    <td>Notificações:</td>
+                    <td>Ativadas</td>
+                  </tr>
                 </tbody>
               </table>
-              <button class="box-chat-viewprofile-logoutbutton" @click="loggedUser = false">Sair da conta</button>
+              <button class="box-chat-viewprofile-logoutbutton" @click="loggedUser = false">
+                Sair da conta
+              </button>
             </div>
           </div>
         </Transition>
