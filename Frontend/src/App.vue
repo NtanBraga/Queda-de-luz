@@ -4,7 +4,7 @@ import { initMap } from './scripts/map.ts'
 import { fetchAllNeighborhoods } from './scripts/neighborhoodMap.ts'
 
 const city:string = 'Porto Alegre';
-const neighborhoodsNoPower= ref<string[]>(['Bela Vista'])
+const neighborhoodsNoPower= ref<string[]>([])
 
 const openMenu = ref(true)
 const openChat = ref(true)

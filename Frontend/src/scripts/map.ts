@@ -34,7 +34,7 @@ export async function initMap(elementId: string, city: string, neighborhoods:str
 
     createCityMask(mapOutput, outlineCity)
 
-    await addUserlocationMarker(mapOutput, boundsCity)
+    await addUserlocationMarker(mapOutput, outlineCity)
 
     await neighborhoodOutlines(mapOutput, neighborhoods, city)
 
