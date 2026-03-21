@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS Base_Account (
                 Email TEXT NOT NULL CHECK(length(Email) <= 100),
                 Description TEXT CHECK(length(Description) <= 500),
                 Profile_picture_link TEXT,
-                UTC_datetime_creation INTEGER DEFAULT( unixepoch('now') ) NOT NULL, --UTC
+                UTC_datetime_creation INTEGER DEFAULT( unixepoch('now') ) NOT NULL, --UTC (in seconds)
                 advertisement_slots_amount INTEGER DEFAULT 0 NOT NULL,
                 District_id INTEGER NOT NULL,
                 FOREIGN KEY(District_id) REFERENCES District(District_id)
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS Person_Account (
 
 CREATE TABLE IF NOT EXISTS Report (
                 Report_id INTEGER PRIMARY KEY,
-                UTC_Date_Report INTEGER DEFAULT( unixepoch('now') ) NOT NULL, --UTC
+                UTC_Date_Report INTEGER DEFAULT( unixepoch('now') ) NOT NULL, --UTC (in seconds)
 				
                 Is_Fixed BOOLEAN DEFAULT(FALSE) NOT NULL, 
 
