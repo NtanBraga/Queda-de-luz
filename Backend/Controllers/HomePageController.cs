@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 
 [ApiController]
 [Route("homepage")]
@@ -13,7 +11,7 @@ public class HomePageController : ControllerBase
     }
 
     [HttpGet]
-    [Route("city/{city_id}/districts")]
+    [Route("cities/{city_id}/districts")]
     public async Task<IActionResult> GetDistrictsAsync(int city_id)
     {
         List<District> districts = await this._homePageService.GetDistrictsAsync(city_id);
@@ -26,7 +24,7 @@ public class HomePageController : ControllerBase
 
 
     [HttpPost]
-     [Route("city/{city_id}/district/{district_id}/reports")]
+    [Route("cities/{city_id}/districts/{district_id}/reports")]
     public async Task<IActionResult> PostReportAsync(int city_id, int district_id, PostReportRequest request)
     {
         //<<TODO: to validate city--district relation>>
@@ -38,6 +36,29 @@ public class HomePageController : ControllerBase
         PostReportResponse response = report.ToPostReportResponse();
         
         //<<TODO: to create a GET endpoint to access reports>>
+        return Ok(response);
+    }
+
+    [HttpGet]
+    [Route("cities/{city_id}/statistics")]
+    public async Task<IActionResult> GetCityStatistics(int city_id)
+    {
+        //<<TODO: to validate city existence>>
+        GetCityStatisticsResponse response = await this._homePageService.GetCityStatistics(city_id);
+
+        return Ok(response);
+    }
+
+
+    [HttpGet]
+    [Route("states/{state_abbreviation}/cities")]
+    public async Task<IActionResult> GetCitiesAsync(string state_abbreviation)
+    {
+        state_abbreviation = state_abbreviation.ToUpper();
+        GetCitiesResponse? response = await this._homePageService.GetCitiesAsync(state_abbreviation);
+
+        if(response is null){ return NotFound(); }
+
         return Ok(response);
     }
 }
