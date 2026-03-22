@@ -4,7 +4,7 @@ import { initMap } from './scripts/map.ts'
 import { fetchAllNeighborhoods, neighborhoodOutlines } from './scripts/neighborhoodMap.ts'
 
 const city: string = 'Porto Alegre'
-const neighborhoodsNoPower = ref<string[]>(['Bela Vista'])
+const neighborhoodsNoPower = ref<string[]>([])
 
 const initiateMap = ref<google.maps.Map | undefined>(undefined)
 
@@ -84,6 +84,12 @@ onMounted(async () => {
 
   window.addEventListener('neighborhood-detected', (e: any) => {
     detectLocation.value = e.detail.name
+  })
+  window.addEventListener('map-neighborhood-clicked', (e: any) => {
+    putManualLocation.value = e.detail.name
+
+    isChangingReport.value = false
+    console.log(`Bairro clickado: ${e.detail.name}`)
   })
 })
 </script>

@@ -1,4 +1,4 @@
-const fetchNeighborhoodLocation = async (lat: number, lng: number): Promise<string> => {
+export const fetchNeighborhoodLocation = async (lat: number, lng: number): Promise<string> => {
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
 
   try {

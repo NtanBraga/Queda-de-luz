@@ -1,7 +1,7 @@
 /// <reference types="google.maps" />
 import { createCityMask, fetchCityBounds, fetchCityOutline } from './cityMap'
 import { neighborhoodOutlines } from './neighborhoodMap'
-import { addUserlocationMarker } from './userLocation'
+import { addUserlocationMarker, fetchNeighborhoodLocation } from './userLocation'
 
 export async function initMap(elementId: string, city: string, neighborhoods: string[]) {
   const { Map } = (await google.maps.importLibrary('maps')) as google.maps.MapsLibrary
@@ -30,6 +30,21 @@ export async function initMap(elementId: string, city: string, neighborhoods: st
       streetViewControl: false,
       fullscreenControl: false,
       clickableIcons: false,
+    })
+
+    mapOutput.addListener('click', async (e: google.maps.MapMouseEvent) => {
+      if (e.latLng) {
+        const lat = e.latLng.lat()
+        const lng = e.latLng.lng()
+
+        const neighborhoodClicked = await fetchNeighborhoodLocation(lat, lng)
+
+        window.dispatchEvent(
+          new CustomEvent('map-neighborhood-clicked', {
+            detail: { name: neighborhoodClicked },
+          }),
+        )
+      }
     })
 
     createCityMask(mapOutput, outlineCity)
