@@ -4,7 +4,7 @@ import { initMap } from './scripts/map.ts'
 import { fetchAllNeighborhoods, neighborhoodOutlines } from './scripts/neighborhoodMap.ts'
 
 //Variaveis de teste
-const city: string = 'Porto Alegre'
+const city = ref<string>('Porto Alegre')
 const neighborhoodsNoPower = ref<string[]>([])
 
 //Inicialização do mapa
@@ -42,7 +42,7 @@ const putManualLocation = ref('')
 const isChangingReport = ref(false)
 const searchReportQuery = ref('')
 const displayNeighborhood = computed(
-  () => detectLocation.value || putManualLocation.value || 'Detectando...',
+  () => putManualLocation.value || detectLocation.value || 'Detectando...',
 )
 const filteredNeighborhoods = computed(() =>
   neighborhoodsList.value.filter((n) =>
@@ -60,7 +60,7 @@ const handleReport = async () => {
     neighborhoodsNoPower.value.push(reportedNeighborhood)
 
     if (initiateMap.value) {
-      await neighborhoodOutlines(initiateMap.value, neighborhoodsNoPower.value, city, false)
+      await neighborhoodOutlines(initiateMap.value, neighborhoodsNoPower.value, city.value, false)
     }
     console.log(`Reportado o bairro: ${reportedNeighborhood}`)
 
@@ -75,8 +75,8 @@ const selectManual = (name: string) => {
 
 onMounted(async () => {
   const [names, map] = await Promise.all([
-    fetchAllNeighborhoods(city),
-    initMap('map-canvas', city, neighborhoodsNoPower.value),
+    fetchAllNeighborhoods(city.value),
+    initMap('map-canvas', city.value, neighborhoodsNoPower.value),
   ])
 
   neighborhoodsList.value = names
@@ -87,7 +87,7 @@ onMounted(async () => {
     let timer = 5000
     for (let i = 0; i < attempts; i++) {
       try {
-        const names = await fetchAllNeighborhoods(city)
+        const names = await fetchAllNeighborhoods(city.value)
         if (names.length > 0) {
           neighborhoodsList.value = names
           return
@@ -108,6 +108,27 @@ onMounted(async () => {
     loadNeighborhoodList()
   }
 
+  window.addEventListener('location-detected', async(e: any) =>  {
+    const { neighborhood: newNeighborhood, city: newCity } = e.detail
+
+    const strictCity = city.value !== '';
+
+    if(!strictCity && newCity && newCity !== city.value) {
+      console.warn(`Mudança de cidade realizada: ${city.value} -> ${newCity}`)
+
+      localStorage.removeItem(`city-bounds-${city.value}`);
+      localStorage.removeItem(`city-outline-${city.value}`);
+      localStorage.removeItem(`${city.value}-neighborhoods`);
+
+      city.value = newCity
+      neighborhoodsList.value = await fetchAllNeighborhoods(newCity)
+
+      initiateMap.value = await initMap('map-canvas', newCity, neighborhoodsNoPower.value)
+    }else if(strictCity && newCity !== city.value){
+      console.warn(`Modo Estrito: Ignorada mudança para ${newCity}. Mantendo em ${city.value}`)
+    }
+    detectLocation.value = newNeighborhood;
+  })
   window.addEventListener('neighborhood-detected', handleDetected)
   window.addEventListener('map-neighborhood-clicked', (e: any) => {
     putManualLocation.value = e.detail.name

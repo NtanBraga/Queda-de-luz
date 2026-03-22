@@ -8,8 +8,15 @@ const clearNeighborhoodPolygons = () => {
 }
 
 export const fetchAllNeighborhoods = async (cityName: string): Promise<string[]> => {
-  const cacheNeighborhoods = localStorage.getItem(`${cityName}-neighborhoods`)
-  if (cacheNeighborhoods) return JSON.parse(cacheNeighborhoods)
+  const cacheNeighborhoods = `${cityName}-neighborhoods`
+
+  try{
+    const cached = localStorage.getItem(cacheNeighborhoods)
+    if (cached) return JSON.parse(cached)
+  }catch(e){
+    console.warn("Erro ao ler cache da lista de bairros.")
+  }
+
   const query = `
     [out:json][timeout:25];
     area["name"="${cityName}"]["admin_level"="8"]->.searchArea;
