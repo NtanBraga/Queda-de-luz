@@ -1,7 +1,7 @@
 /// <reference types="google.maps" />
 import { createCityMask, fetchCityBounds, fetchCityOutline } from './cityMap'
 import { neighborhoodOutlines } from './neighborhoodMap'
-import { addUserlocationMarker, fetchNeighborhoodLocation } from './userLocation'
+import { addUserlocationMarker, fetchAllLocation } from './userLocation'
 
 //Funções para inicialização e customização do mapa
 
@@ -39,7 +39,7 @@ export async function initMap(elementId: string, city: string, neighborhoods: st
         const lat = e.latLng.lat()
         const lng = e.latLng.lng()
 
-        const neighborhoodClicked = await fetchNeighborhoodLocation(lat, lng)
+        const neighborhoodClicked = await fetchAllLocation(lat, lng)
 
         window.dispatchEvent(
           new CustomEvent('map-neighborhood-clicked', {

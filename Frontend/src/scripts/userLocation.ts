@@ -2,29 +2,14 @@
 
 import { safeFetch } from "./clientApi"
 
-export const fetchAllLocation = async (lat: number, lng: number) => {
-  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
-  try {
-    
-    const response = await safeFetch(url)
-    const data = await response.json()
-
-    const detectCity = data.address.city || data.address.town || data.address.village
-    const detectNeighborhood = data.address.suburb || data.address.neighborhood
-
-    return { city: detectCity, neighborhood: detectNeighborhood }
-  } catch (e) {
-    console.error('Erro ao capturar geolocalização:', e)
-  }
-}
-
-export const fetchNeighborhoodLocation = async (lat: number, lng: number): Promise<string> => {
+export const fetchAllLocation = async (lat:number, lng: number) => {
   const fixedLat = lat.toFixed(4)
   const fixedLng = lng.toFixed(4)
-  const cachelocation = `location-${fixedLat}-${fixedLng}`
+
+  const cacheLocation = `location-${fixedLat}-${fixedLng}`
 
   try {
-    const cached = localStorage.getItem(cachelocation)
+    const cached = localStorage.getItem(cacheLocation)
     if (cached) return JSON.parse(cached)
   } catch (e) {
     console.warn('Erro ao pegar cache das bordas de bairro')
@@ -32,22 +17,19 @@ export const fetchNeighborhoodLocation = async (lat: number, lng: number): Promi
 
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
 
-  try {
+  try{
     const response = await safeFetch(url)
     const data = await response.json()
 
-    const neighborhoodName = data.address.suburb || data.address.neighborhood
-
-    try {
-      localStorage.setItem(cachelocation, JSON.stringify(neighborhoodName))
-    } catch (e) {
-      console.error('Não foi possivel guardar em cache o local do bairro.', e)
+    const locationData = {
+      city: data.address.city || data.address.town || data.address.village,
+      neighborhood: data.address.suburb || data.address.neighborhood
     }
 
-    return neighborhoodName
-  } catch (e) {
-    console.error('Erro ao pegar local de usuario para o marcador: ', e)
-    return 'Local atual'
+    localStorage.setItem(cacheLocation, JSON.stringify(locationData))
+    return locationData
+  }catch(e){
+    console.error('Erro ao capturar geolocalização:', e)
   }
 }
 
@@ -98,18 +80,17 @@ export const addUserlocationMarker = async (
         }
 
         if (google.maps.geometry.poly.containsLocation(userPos, cityPolygon)) {
-          const neightborhoodName = await fetchNeighborhoodLocation(userPos.lat(), userPos.lng())
 
           new AdvancedMarkerElement({
             map: map,
             position: userPos,
-            content: userLocationContainer(neightborhoodName),
+            content: userLocationContainer(locationData.neighborhood),
             title: 'Sua Localização',
             zIndex: 30,
           })
           window.dispatchEvent(
             new CustomEvent('neighborhood-detected', {
-              detail: { name: neightborhoodName },
+              detail: { name: locationData.neighborhood },
             }),
           )
         } else {
