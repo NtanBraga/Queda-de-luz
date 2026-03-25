@@ -3,6 +3,8 @@ interface CacheStruct<T> {
   expire: number
 }
 
+//Cache reativo com o tempo TTL padrão 7 dias
+// Evita manter informações não atualizadas de locais
 export const cacheManager = {
   set: <T>(key: string, value: T, ttl: number = 7): void => {
     const expire = Date.now() + ttl * 24 * 60 * 60 * 1000
