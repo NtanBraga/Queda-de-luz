@@ -1,5 +1,7 @@
 //Funções de gerenciamento de parametros de bairros
 
+import { safeFetch } from "./clientApi"
+
 let polygonsCleaner: google.maps.Polygon[] = []
 
 const clearNeighborhoodPolygons = () => {
@@ -37,7 +39,7 @@ export const fetchAllNeighborhoods = async (cityName: string): Promise<string[]>
   const timeOut = setTimeout(() => controller.abort(), 25000)
 
   try {
-    const response = await fetch(url)
+    const response = await safeFetch(url)
     clearTimeout(timeOut)
     const data = await response.json()
 
@@ -63,20 +65,18 @@ export const fetchAllNeighborhoods = async (cityName: string): Promise<string[]>
 const fetchNeighborhoodOutline = async (
   neighborhoodName: string,
 ): Promise<google.maps.LatLngLiteral[][]> => {
-  
   const cacheOutlines = `outline-${neighborhoodName}`
-  try{
+  try {
     const cached = localStorage.getItem(cacheOutlines)
-    if(cached) return JSON.parse(cached)
-  }catch(e){
-    console.warn("Erro ao pegar cache das bordas de bairro")
+    if (cached) return JSON.parse(cached)
+  } catch (e) {
+    console.warn('Erro ao pegar cache das bordas de bairro')
   }
-  
-  
+
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(neighborhoodName)}&format=json&polygon_geojson=1&limit=1`
 
   try {
-    const response = await fetch(url)
+    const response = await safeFetch(url)
     const data = await response.json()
 
     if (!data.length || !data[0].geojson) return []
@@ -109,20 +109,19 @@ export const neighborhoodOutlines = async (
   cityName: string,
   fixedCamera: boolean = true,
 ): Promise<google.maps.Polygon[]> => {
-
   const polygonsMap: google.maps.Polygon[] = []
   const allBounds = new google.maps.LatLngBounds()
 
   const fetchPromises = neighborhoodNames.map(async (name) => {
-    const fullSearchName = `${name}, ${cityName}`;
-    return { name, paths: await fetchNeighborhoodOutline(fullSearchName)}
+    const fullSearchName = `${name}, ${cityName}`
+    return { name, paths: await fetchNeighborhoodOutline(fullSearchName) }
   })
-  
+
   const result = await Promise.all(fetchPromises)
 
   clearNeighborhoodPolygons()
 
-  result.forEach(({paths}) => {
+  result.forEach(({ paths }) => {
     if (paths.length > 0) {
       const polygon = new google.maps.Polygon({
         paths: paths,

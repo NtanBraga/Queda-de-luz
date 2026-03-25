@@ -1,5 +1,7 @@
 //Funções de gerenciamento de parametros da cidade
 
+import { safeFetch } from "./clientApi"
+
 const worldAmericaCoords: google.maps.LatLngLiteral[] = [
   { lat: 15, lng: -95 },
   { lat: 15, lng: -30 },
@@ -24,7 +26,7 @@ export const fetchCityBounds = async (cityName: string): Promise<google.maps.Lat
   }
 
   try {
-    const response = await fetch(url)
+    const response = await safeFetch(url)
     const data = await response.json()
 
     if (!data.length) throw new Error('Local não encontrado')
@@ -55,7 +57,7 @@ export const fetchCityOutline = async (
   if (cached) return JSON.parse(cached)
 
   try {
-    const response = await fetch(url)
+    const response = await safeFetch(url)
     const data = await response.json()
 
     if (!data.length || !data[0].geojson) return []

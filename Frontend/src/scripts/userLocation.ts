@@ -1,9 +1,12 @@
 //Funções de gerenciamento de parametros da cidade
 
+import { safeFetch } from "./clientApi"
+
 export const fetchAllLocation = async (lat: number, lng: number) => {
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
   try {
-    const response = await fetch(url)
+    
+    const response = await safeFetch(url)
     const data = await response.json()
 
     const detectCity = data.address.city || data.address.town || data.address.village
@@ -16,29 +19,29 @@ export const fetchAllLocation = async (lat: number, lng: number) => {
 }
 
 export const fetchNeighborhoodLocation = async (lat: number, lng: number): Promise<string> => {
-  const fixedLat = lat.toFixed(4);
-  const fixedLng = lng.toFixed(4);
+  const fixedLat = lat.toFixed(4)
+  const fixedLng = lng.toFixed(4)
   const cachelocation = `location-${fixedLat}-${fixedLng}`
-  
-  try{
+
+  try {
     const cached = localStorage.getItem(cachelocation)
-    if(cached) return JSON.parse(cached)
-  }catch(e){
-    console.warn("Erro ao pegar cache das bordas de bairro")
+    if (cached) return JSON.parse(cached)
+  } catch (e) {
+    console.warn('Erro ao pegar cache das bordas de bairro')
   }
-  
+
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
 
   try {
-    const response = await fetch(url)
+    const response = await safeFetch(url)
     const data = await response.json()
 
     const neighborhoodName = data.address.suburb || data.address.neighborhood
 
-    try{  
-      localStorage.setItem(cachelocation, JSON.stringify(neighborhoodName));
-    }catch(e){
-      console.error("Não foi possivel guardar em cache o local do bairro.", e)
+    try {
+      localStorage.setItem(cachelocation, JSON.stringify(neighborhoodName))
+    } catch (e) {
+      console.error('Não foi possivel guardar em cache o local do bairro.', e)
     }
 
     return neighborhoodName
@@ -72,7 +75,7 @@ const userLocationContainer = (neighborhoodName: string) => {
 export const addUserlocationMarker = async (
   map: google.maps.Map,
   cityBounds: google.maps.LatLngLiteral[][],
-)  => {
+) => {
   const { AdvancedMarkerElement } = (await google.maps.importLibrary(
     'marker',
   )) as google.maps.MarkerLibrary
