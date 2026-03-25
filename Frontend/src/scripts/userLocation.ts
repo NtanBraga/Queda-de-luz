@@ -1,21 +1,21 @@
 //Funções de gerenciamento de parametros da cidade
 
-import { cacheManager } from "./cacheManager"
-import { safeFetch } from "./clientApi"
+import { cacheManager } from './cacheManager'
+import { safeFetch } from './clientApi'
 
 interface UserLocation {
-  city: string;
-  neighborhood: string;
+  city: string
+  neighborhood: string
 }
 
-export const fetchAllLocation = async (lat:number, lng: number) => {
+export const fetchAllLocation = async (lat: number, lng: number) => {
   const fixedLat = lat.toFixed(4)
   const fixedLng = lng.toFixed(4)
 
   const cacheLocation = `location-${fixedLat}-${fixedLng}`
 
   try {
-    const cached = cacheManager.get<{city: string, neighborhood: string}>(cacheLocation)
+    const cached = cacheManager.get<{ city: string; neighborhood: string }>(cacheLocation)
     if (cached) return cached
   } catch (e) {
     console.warn('Erro ao pegar cache das bordas de bairro')
@@ -23,18 +23,18 @@ export const fetchAllLocation = async (lat:number, lng: number) => {
 
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
 
-  try{
+  try {
     const response = await safeFetch(url)
     const data = await response.json()
 
     const locationData: UserLocation = {
       city: data.address.city || data.address.town || data.address.village,
-      neighborhood: data.address.suburb || data.address.neighborhood
+      neighborhood: data.address.suburb || data.address.neighborhood,
     }
 
-    cacheManager.set(cacheLocation, locationData,2);
-    return locationData;
-  }catch(e){
+    cacheManager.set(cacheLocation, locationData, 2)
+    return locationData
+  } catch (e) {
     console.error('Erro ao capturar geolocalização:', e)
     return null
   }
@@ -78,10 +78,10 @@ export const addUserlocationMarker = async (
 
         const locationData = await fetchAllLocation(userPos.lat(), userPos.lng())
 
-        if(!locationData) {
-          console.warn("Não foi possivel carregar os dados de localização para o marcador")
-          return;
-        }else{
+        if (!locationData) {
+          console.warn('Não foi possivel carregar os dados de localização para o marcador')
+          return
+        } else {
           window.dispatchEvent(
             new CustomEvent('location-detected', {
               detail: { city: locationData.city, neighborhood: locationData.neighborhood },
@@ -90,7 +90,6 @@ export const addUserlocationMarker = async (
         }
 
         if (google.maps.geometry.poly.containsLocation(userPos, cityPolygon)) {
-
           new AdvancedMarkerElement({
             map: map,
             position: userPos,

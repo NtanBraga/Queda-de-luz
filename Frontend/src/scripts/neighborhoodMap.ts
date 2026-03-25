@@ -1,7 +1,7 @@
 //Funções de gerenciamento de parametros de bairros
 
-import { cacheManager } from "./cacheManager"
-import { safeFetch } from "./clientApi"
+import { cacheManager } from './cacheManager'
+import { safeFetch } from './clientApi'
 
 let polygonsCleaner: google.maps.Polygon[] = []
 
@@ -50,7 +50,7 @@ export const fetchAllNeighborhoods = async (cityName: string): Promise<string[]>
 
     const sendNeighborhoods = Array.from<string>(new Set(names)).sort()
 
-    cacheManager.set(cacheNeighborhoods, sendNeighborhoods, 7);
+    cacheManager.set(cacheNeighborhoods, sendNeighborhoods, 7)
 
     return sendNeighborhoods
   } catch (e) {
