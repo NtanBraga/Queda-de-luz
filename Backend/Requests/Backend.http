@@ -28,11 +28,11 @@ POST {{BlackoutMap_HostAddress}}/accounts
 Content-Type: application/json
 
 {
-    "Username": "NomeUsuario", 
-    "Unhashed_Password": "senha",
-    "Email": "email@email.com",
+    "Username": "NomeNome", 
+    "Unhashed_Password": "sen423234ha",
+    "Email": "mail@email.com",
     "District_Id": 1,
-    "Person_Details": { "Birthday": "2000-01-30"},
+    "Person_Details": { "Birthday": "2002-02-21"},
     "Business_Details": null
 }
 

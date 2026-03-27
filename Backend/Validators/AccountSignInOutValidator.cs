@@ -7,18 +7,21 @@ public  class AccountSignInOutValidator
         this._connectionFactory = connectionFactory;
     }
 
-    public bool IsValid(PostAccountRequest request)
+    public (bool, RequestError?) IsValid(PostAccountRequest request)
     {
+        RequestError? error = null;
+
         if(request.Person_Details is not null && request.Business_Details is not null ||
            request.Person_Details is null     && request.Business_Details is null)
         {
-            return false;
+            error = new RequestError(StatusCodes.Status400BadRequest, "Either PersonDetails or BusinessDetails should be not null");
+            return (false, error);
         }
 
         //<<TODO: validate Email>>
         //<<TODO: validate District Id Existence>>
         //<<TODO: validate duplicate Username>>
 
-        return true;
+        return (true, error);
     }
 }

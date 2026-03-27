@@ -1,7 +1,9 @@
+using System.Runtime.Serialization;
+
 public class BaseAccount{
     public int  Id {get; set;}
     public string Username {get; set;}
-    public string HashedPassword {get; set;}
+    public string HashedPassword {get; set;} = string.Empty;
     public string Email {get; set;}
     public string? Description {get; set;} = string.Empty;
     public string? ProfilePictureLink {get; set;} = null;
@@ -18,6 +20,16 @@ public class BaseAccount{
         this.HashedPassword = Hashed_password;
         this.Email = Email;
         this.DistrictId = District_id;
+    }
+
+    //to recover from the database
+    public BaseAccount(string Username, string Email, long UTC_datetime_creation, long Advertisement_slots_amount, long District_id)
+    {
+        this.Username = Username;
+        this.Email = Email;
+        this.UTC_DatetimeCreation = UTC_datetime_creation;
+        this.AdvertisementSlotsAmount = (int)Advertisement_slots_amount;
+        this.DistrictId = (int)District_id;
     }
 }
 
