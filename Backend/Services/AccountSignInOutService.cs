@@ -17,8 +17,7 @@ public class AccountSignInOutService : IAccountSignInOutService
     }
 
 
-    //temporary bool return type
-    public async Task<bool> CreateAccountAsync(BaseAccount baseAccount)
+    public async Task<BaseAccount> CreateAccountAsync(BaseAccount baseAccount)
     { 
         using var dbcontext = await this._connectionFactory.CreateConnectionAsync();
 
@@ -35,43 +34,54 @@ public class AccountSignInOutService : IAccountSignInOutService
         switch(baseAccount)
         {
             case PersonAccount pAccount: 
-                await dbcontext.ExecuteAsync(
+                pAccount = await dbcontext.QuerySingleAsync<PersonAccount>(
                 """
                     INSERT INTO Person_Account (Person_Account_id, Birthday)
                     VALUES (@AccountId, @Birthday);
+
+                    SELECT pa.Birthday, 
+                           ba.Username, ba.Email, ba.UTC_datetime_creation, 
+                           ba.Advertisement_slots_amount, ba.District_id
+                    FROM Person_Account AS pa JOIN Base_Account AS ba ON pa.Person_Account_id = ba.Base_Account_id
+                    WHERE pa.Person_Account_id = @AccountId;
                 """,
                 new{AccountId = accountId, 
                     Birthday = JsonSerializer.Serialize(pAccount.Birthday).Replace("\"", string.Empty)}
                 );
-            
+    
             dbcontext.Close();
-            return true;
-            //break;
+            return pAccount;
+
+            //----------------------------------------------------------------------------------
             case BusinessAccount bAccount: 
-                await dbcontext.ExecuteAsync(
+                bAccount = await dbcontext.QuerySingleAsync<BusinessAccount>(
                 """
                     INSERT INTO Business_Account (Business_Account_id, Cnpj)
-                    VALUES (@AccountId, '@CNPJ');
+                    VALUES (@AccountId, @CNPJ);
 
                     UPDATE Base_Account SET Advertisement_slots_amount = 1
-                    WHERE Base_Account_id = @AccountId;    
+                    WHERE Base_Account_id = @AccountId;  
+
+                    SELECT busa.Cnpj, 
+                           ba.Username, ba.Email, ba.UTC_datetime_creation, 
+                           ba.Advertisement_slots_amount, ba.District_id
+                    FROM Business_Account AS busa JOIN Base_Account AS ba ON busa.Business_Account_id = ba.Base_Account_id
+                    WHERE busa.Business_Account_id = @AccountId;  
                 """,
                 new{AccountId = accountId, CNPJ = bAccount.CNPJ }
                 );
             
             dbcontext.Close();
-            return true;
-            //break;
+            return bAccount;
         }
 
         dbcontext.Close();
-
-        return false;
+        throw new InvalidDataException("Object is neither Person nor Business Account");
     }
 }
 
 public interface IAccountSignInOutService
 {
-    public Task<bool> CreateAccountAsync(BaseAccount baseAccount);
+    public Task<BaseAccount> CreateAccountAsync(BaseAccount baseAccount);
     public string HashPassword(string unhashedPassword);
 }

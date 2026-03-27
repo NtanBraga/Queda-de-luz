@@ -14,9 +14,14 @@ public class AccountSignInOutController : ControllerBase
     } 
 
     [HttpPost]
-    public async Task<IActionResult> CreateAccountAsync(PostAccountRequest request)
+    public async Task<IActionResult> PostAccountAsync(PostAccountRequest request)
     {
-        if(!this._validator.IsValid(request)){ return BadRequest(); }
+        (bool isValid, var error)= this._validator.IsValid(request);
+        if(isValid == false)
+        { 
+            return this.StatusCode(error!.StatusCode, error.Message); 
+        }
+
         string hashedPassword = this._accountService.HashPassword(request.Unhashed_Password);
         
         BaseAccount account;
@@ -27,11 +32,11 @@ public class AccountSignInOutController : ControllerBase
             account = request.ToBusinessAccount(hashedPassword);
         }
     
-        var response = await this._accountService.CreateAccountAsync(account);
+        BaseAccount createdAccount = await this._accountService.CreateAccountAsync(account);
+        PostAccountResponse response = createdAccount.ToPostAccountResponse();
 
-        if(!response){ return BadRequest(); } // temp
-
-        return Created();
+        return Ok(response);
+        //return Created();
     }
 
 }
