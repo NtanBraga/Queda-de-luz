@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -5,9 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 public class HomePageController : ControllerBase
 {
     private readonly IHomePageService _homePageService;
-    public HomePageController(IHomePageService homePageService)
+    private readonly HomePageValidator _homePageValidator;
+    public HomePageController(IHomePageService homePageService, HomePageValidator homePageValidator)
     {
         this._homePageService = homePageService;
+        this._homePageValidator = homePageValidator;
     }
 
     [HttpGet]
@@ -31,15 +35,26 @@ public class HomePageController : ControllerBase
     [Route("cities/{city_id}/districts/{district_id}/reports")]
     public async Task<IActionResult> PostReportAsync(int city_id, int district_id, PostReportRequest request)
     {
-        //<<TODO: to validate city--district relation>>
+        RequestError? error = null;
+        (bool isValid, error) = await this._homePageValidator.IsValid(request, city_id, district_id);
+
+        if(isValid == false)
+        {
+            return this.StatusCode(error!.StatusCode, error.Message);
+        }
+        
         //<<TODO: if userId not null, then authenticate with who is sending the request>>
 
         Report report = request.ToReport(district_id);
-        report= await this._homePageService.PostReportAsync(report);
-
-        PostReportResponse response = report.ToPostReportResponse();
+        try
+        {
+            report = await this._homePageService.PostReportAsync(report);
+        }
+        catch(Exception){
+            return this.StatusCode(StatusCodes.Status500InternalServerError);
+        }
         
-        //<<TODO: to create a GET endpoint to access reports>>
+        PostReportResponse response = report.ToPostReportResponse();
         return Ok(response);
     }
 
@@ -47,7 +62,7 @@ public class HomePageController : ControllerBase
     [Route("cities/{city_id}/statistics")]
     public async Task<IActionResult> GetCityStatistics(int city_id)
     {
-        (GetCityStatisticsResponse? response, var error) = await this._homePageService.GetCityStatistics(city_id);
+        (GetCityStatisticsResponse? response, var error) = await this._homePageService.GetCityStatisticsAsync(city_id);
 
         if(error is not null)
         {

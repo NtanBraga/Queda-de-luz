@@ -72,7 +72,7 @@ public class HomePageService : IHomePageService
             new{ reportId = result.Id }
         );
 
-
+        //is its a IsFixed=true report, check current ratio with IsFixed=false to make potential clean-ups in the recent Reports table
         if(report.IsFixed == true)
         {
             await dbContext.ExecuteAsync(
@@ -85,7 +85,7 @@ public class HomePageService : IHomePageService
         return result;
     }
 
-    public async Task<(GetCityStatisticsResponse?, RequestError?)> GetCityStatistics(int city_id)
+    public async Task<(GetCityStatisticsResponse?, RequestError?)> GetCityStatisticsAsync(int city_id)
     {
         using var dbContext = await this._dbConnectionFactory.CreateConnectionAsync();
 
@@ -177,8 +177,9 @@ public class HomePageService : IHomePageService
 
 public interface IHomePageService
 {
-    public Task<(List<District>,            RequestError?)> GetDistrictsAsync(int city_id);
+    public Task<(List<District>,             RequestError?)> GetDistrictsAsync(int city_id);
+    public Task<(GetCityStatisticsResponse?, RequestError?)> GetCityStatisticsAsync(int city_id);
+    public Task<(GetCitiesResponse?,         RequestError?)> GetCitiesAsync(string state_abbreviation);
+
     public Task<Report> PostReportAsync(Report report);
-    public Task<(GetCityStatisticsResponse?, RequestError?)> GetCityStatistics(int city_id);
-    public Task<(GetCitiesResponse?,        RequestError?)> GetCitiesAsync(string state_abbreviation);
 }
