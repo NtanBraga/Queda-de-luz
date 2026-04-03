@@ -61,7 +61,7 @@ public class HomePageService : IHomePageService
             new{ IsFixed = report.IsFixed,
                  ProblemCategory_Id = report.ProblemCategoryId, 
                  District_Id = report.ReportedDistrictId,
-                 AccountId = report.AccountId is not null ? report.AccountId : null}
+                 AccountId = report.AccountId}
         );
 
         //"add" the recently created report to the recent reports table
