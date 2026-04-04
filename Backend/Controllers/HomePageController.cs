@@ -1,4 +1,7 @@
+using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,9 +33,10 @@ public class HomePageController : ControllerBase
         return Ok(response);
     }
 
-
+    // [Authorize("default")]
     [HttpPost]
     [Route("cities/{city_id}/districts/{district_id}/reports")]
+    [AllowAnonymous] //skip authorization process, but still validates the JWT token
     public async Task<IActionResult> PostReportAsync(int city_id, int district_id, PostReportRequest request)
     {
         RequestError? error = null;
@@ -42,10 +46,21 @@ public class HomePageController : ControllerBase
         {
             return this.StatusCode(error!.StatusCode, error.Message);
         }
-        
-        //<<TODO: if userId not null, then authenticate with who is sending the request>>
 
-        Report report = request.ToReport(district_id);
+        string? accountIdClaim = null;
+        //verifies if it the HTTP request has a valid Authorization Header
+        if(User.Identity is not null && User.Identity.IsAuthenticated == true)
+        {
+            accountIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? null;
+            if(accountIdClaim is null){
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Invalid token format");
+            }
+        }
+
+        int? parsedAccountId = accountIdClaim is null ? null
+                                                      : int.Parse(accountIdClaim);
+
+        Report report = request.ToReport(district_id, parsedAccountId);
         try
         {
             report = await this._homePageService.PostReportAsync(report);
