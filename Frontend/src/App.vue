@@ -20,6 +20,8 @@ const openChat = ref(true)
 const newMessage = ref('')
 const activeTab = ref('chat')
 const loggedUser = ref(false)
+const isRegistered = ref(false)
+const razaoSocial = ref('CPF')
 const messages = ref([{ user: 'Test', text: 'Mensagem de teste.' }])
 const selectedTab = (tabName: string) => {
   activeTab.value = activeTab.value === tabName ? 'chat' : tabName
@@ -43,6 +45,12 @@ const onlineUsers = ref([
   { name: 'Visitante_Beta', location: 'Centro Histórico', status: 'Online' },
 ])
 
+const handleLoginStay = () => {
+  if (activeTab.value === 'chat') {
+    isRegistered.value = true
+  }
+  selectedTab('profile')
+}
 //Variaveis para reporte
 const neighborhoodsList = ref<string[]>([])
 const detectLocation = ref('')
@@ -136,6 +144,8 @@ const loadNeighborhoodList = async (attempts = 3) => {
   console.error('Não foi possivel carregar a lista de bairros.')
 }
 
+//Registro
+
 onMounted(async () => {
   window.addEventListener('neighborhood-detected', handleDetected)
   window.addEventListener('map-neighborhood-clicked', (e: any) => {
@@ -228,12 +238,12 @@ onUnmounted(() => {
         <div class="box-chat-verify-logged">
           <div class="box-chat-profile-image" :class="{ 'is-logged': loggedUser }"></div>
           <div class="box-chat-toggle-profile-online">
-            <span class="button-switch-profile" @click="selectedTab('profile')">{{
+            <span class="button-switch-profile" @click="handleLoginStay">{{
               activeTab === 'profile'
                 ? loggedUser
                   ? 'Meu perfil'
-                  : 'Entrar / Cadastro'
-                : 'Voltar ao chat'
+                  : 'Voltar ao chat'
+                : 'Entrar / Cadastro'
             }}</span>
             <span
               v-if="loggedUser"
@@ -268,11 +278,65 @@ onUnmounted(() => {
             </div>
           </div>
           <div v-else-if="activeTab === 'profile'" key="profile" class="box-chat-viewprofile">
-            <div v-if="!loggedUser" class="box-chat-loginform">
-              <h3>Acessar a conta</h3>
-              <input type="text" placeholder="E-mail" />
-              <input type="password" placeholder="Senha" />
-              <button class="box-chat-loginform-button" @click="loggedUser = true">ENTRAR</button>
+            <div v-if="!loggedUser">
+              <Transition name="slide" mode="out-in">
+                <div v-if="isRegistered" class="box-chat-loginform">
+                  <h3>Acessar a conta</h3>
+                  <input type="text" placeholder="E-mail" />
+                  <input type="password" placeholder="Senha" />
+                  <button class="box-chat-loginform-button" @click="loggedUser = true">
+                    ENTRAR
+                  </button>
+                  <div class="box-chat-loginform-verifications">
+                    <span class="box-chat-loginform-forgot-password">Esqueceu de sua senha?</span>
+                    <span class="box-chat-loginform-not-registered" @click="isRegistered = false"
+                      >Não possui registro?</span
+                    >
+                  </div>
+                </div>
+                <div v-else class="box-chat-registerform">
+                  <h3>Criar sua conta</h3>
+                  <div class="box-chat-registerform-typeaccount">
+                    <button :class="{ active: razaoSocial === 'CPF' }" @click="razaoSocial = 'CPF'">
+                      CPF
+                    </button>
+                    <button
+                      :class="{ active: razaoSocial === 'CNPJ' }"
+                      @click="razaoSocial = 'CNPJ'"
+                    >
+                      CNPJ
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    :placeholder="razaoSocial === 'CPF' ? 'Nome Completo' : 'Razão Social'"
+                    required
+                  />
+                  <input type="text" placeholder="E-mail" required />
+                  <input type="password" placeholder="Senha" required />
+                  <input
+                    type="text"
+                    :placeholder="
+                      razaoSocial === 'CPF' ? 'CPF(000.000.000-00)' : 'CNPJ(00.000.000/0000-00)'
+                    "
+                    required
+                  />
+                  <input type="date" min="1926-01-01" max="2025-12-31" required />
+                  <input type="text" placeholder="Seu bairro" required />
+                  <input
+                    type="tel"
+                    placeholder="Seu numero de celular"
+                    pattern="\(\d{2}\)\s\d{5}-\d{4}"
+                    required
+                  />
+                  <button class="box-chat-registerform-btn">CADASTRAR</button>
+                  <div class="box-chat-loginform-verifications">
+                    <span class="box-chat-loginform-not-registered" @click="isRegistered = true"
+                      >Já possui conta?</span
+                    >
+                  </div>
+                </div>
+              </Transition>
             </div>
             <div v-else class="box-chat-profile-table-container">
               <table class="box-chat-profile-table">
