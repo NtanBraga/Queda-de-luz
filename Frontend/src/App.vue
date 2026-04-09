@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, onUnmounted } from 'vue'
+import { onMounted, ref, computed, onUnmounted, watch } from 'vue'
 import { initMap } from './scripts/maps/map.ts'
 import {
   clearAllPolygons,
   fetchAllNeighborhoods,
   neighborhoodOutlines,
 } from './scripts/maps/neighborhoodMap.ts'
+import { registrarContaCPF, type UserCPF } from './scripts/user/userCPF.ts'
+import { registrarContaCNPJ, type UserCNPJ } from './scripts/user/userCNPJ.ts'
 
 //Variaveis de teste
 const city = ref<string>('Porto Alegre')
@@ -19,9 +21,6 @@ const openMenu = ref(true)
 const openChat = ref(true)
 const newMessage = ref('')
 const activeTab = ref('chat')
-const loggedUser = ref(false)
-const isRegistered = ref(false)
-const razaoSocial = ref('CPF')
 const messages = ref([{ user: 'Test', text: 'Mensagem de teste.' }])
 const selectedTab = (tabName: string) => {
   activeTab.value = activeTab.value === tabName ? 'chat' : tabName
@@ -45,12 +44,6 @@ const onlineUsers = ref([
   { name: 'Visitante_Beta', location: 'Centro Histórico', status: 'Online' },
 ])
 
-const handleLoginStay = () => {
-  if (activeTab.value === 'chat') {
-    isRegistered.value = true
-  }
-  selectedTab('profile')
-}
 //Variaveis para reporte
 const neighborhoodsList = ref<string[]>([])
 const detectLocation = ref('')
@@ -144,7 +137,92 @@ const loadNeighborhoodList = async (attempts = 3) => {
   console.error('Não foi possivel carregar a lista de bairros.')
 }
 
-//Registro
+//Variaveis de conta
+
+const loggedUser = ref(false)
+const isRegistered = ref(false)
+const razaoSocial = ref('CPF')
+const selectRegisterNeighborhood = ref(false)
+
+const registerForm = ref({
+  nome: '',
+  razao_social: '',
+  telefone: '',
+  email: '',
+  senha: '',
+  data: '',
+  bairro_criacao: '',
+})
+
+const handleRegistration = async () => {
+  const { nome, razao_social, telefone, email, senha, data, bairro_criacao } = registerForm.value
+
+  try {
+    if (razaoSocial.value === 'CPF') {
+      const newUser: UserCPF = {
+        nome: nome,
+        cpf: razao_social,
+        telefone: telefone,
+        email: email,
+        senha: senha,
+        data_nascimento: data,
+        bairro_criacao: bairro_criacao || detectLocation.value,
+        descrição: '',
+        imagem_perfil_link: '',
+      }
+
+      await registrarContaCPF(newUser)
+    } else {
+      const newUser: UserCNPJ = {
+        nome: nome,
+        cnpj: razao_social,
+        telefone: telefone,
+        email: email,
+        senha: senha,
+        data_criação: data,
+        bairro_criacao: bairro_criacao || detectLocation.value,
+        descrição: '',
+        imagem_perfil_link: '',
+        slot_anuncio_quantidade: 3,
+      }
+
+      await registrarContaCNPJ(newUser)
+    }
+
+    loggedUser.value = true
+    isRegistered.value = true
+  } catch (error) {
+    console.error('Falha ao realizar registro:', error)
+  }
+}
+
+watch(
+  detectLocation,
+  (newBairro) => {
+    if (newBairro && !registerForm.value.bairro_criacao) {
+      registerForm.value.bairro_criacao = newBairro
+    }
+  },
+  { immediate: true },
+)
+
+const handleLoginStay = () => {
+  if (activeTab.value === 'chat') {
+    isRegistered.value = true
+  }
+  selectedTab('profile')
+}
+
+const filteredRegisterNeighborhoods = computed(() =>
+  neighborhoodsList.value.filter((n) =>
+    n.toLowerCase().includes(registerForm.value.bairro_criacao.toLowerCase()),
+  ),
+)
+
+const selectingRegisterNeighborhood = (name: string) => {
+  registerForm.value.bairro_criacao = name
+  selectRegisterNeighborhood.value = false
+}
 
 onMounted(async () => {
   window.addEventListener('neighborhood-detected', handleDetected)
@@ -308,28 +386,65 @@ onUnmounted(() => {
                     </button>
                   </div>
                   <input
+                    v-model="registerForm.nome"
                     type="text"
                     :placeholder="razaoSocial === 'CPF' ? 'Nome Completo' : 'Razão Social'"
                     required
                   />
-                  <input type="text" placeholder="E-mail" required />
-                  <input type="password" placeholder="Senha" required />
+                  <input v-model="registerForm.email" type="text" placeholder="E-mail" required />
                   <input
+                    v-model="registerForm.senha"
+                    type="password"
+                    placeholder="Senha"
+                    required
+                  />
+                  <input
+                    v-model="registerForm.razao_social"
                     type="text"
                     :placeholder="
                       razaoSocial === 'CPF' ? 'CPF(000.000.000-00)' : 'CNPJ(00.000.000/0000-00)'
                     "
                     required
                   />
-                  <input type="date" min="1926-01-01" max="2025-12-31" required />
-                  <input type="text" placeholder="Seu bairro" required />
                   <input
+                    v-model="registerForm.data"
+                    type="date"
+                    min="1926-01-01"
+                    max="2025-12-31"
+                    required
+                  />
+                  <div class="box-chat-registerform-neighborhood">
+                    <input
+                      v-model="registerForm.bairro_criacao"
+                      type="text"
+                      placeholder="Seu bairro"
+                      @focus="selectRegisterNeighborhood = true"
+                      readonly
+                      required
+                    />
+                    <ul
+                      v-if="selectRegisterNeighborhood && filteredRegisterNeighborhoods.length"
+                      class="box-chat-registerform-dropdown"
+                    >
+                      <li
+                        v-for="n in filteredNeighborhoods"
+                        :key="n"
+                        @click="selectingRegisterNeighborhood(n)"
+                      >
+                        {{ n }}
+                      </li>
+                    </ul>
+                  </div>
+                  <input
+                    v-model="registerForm.telefone"
                     type="tel"
                     placeholder="Seu numero de celular"
                     pattern="\(\d{2}\)\s\d{5}-\d{4}"
                     required
                   />
-                  <button class="box-chat-registerform-btn">CADASTRAR</button>
+                  <button class="box-chat-registerform-btn" @click="handleRegistration">
+                    CADASTRAR
+                  </button>
                   <div class="box-chat-loginform-verifications">
                     <span class="box-chat-loginform-not-registered" @click="isRegistered = true"
                       >Já possui conta?</span

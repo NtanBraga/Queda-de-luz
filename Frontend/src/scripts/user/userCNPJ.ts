@@ -3,6 +3,7 @@ export interface UserCNPJ {
   cnpj: string
   telefone: string
   email: string
+  senha: string
   descrição: string
   imagem_perfil_link: string
   data_criação: string
@@ -11,6 +12,8 @@ export interface UserCNPJ {
 }
 
 export const registrarContaCNPJ = async (userData: UserCNPJ) => {
+  console.log(userData)
+
   try {
     console.log(`Usuario registrado no sistema: ${userData.nome}`)
   } catch (e) {
