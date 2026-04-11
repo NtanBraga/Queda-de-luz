@@ -506,6 +506,23 @@ body,
             }
           }
 
+          .box-chat-registerform-inputgroup {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            .box-chat-registerform-errormsg {
+              color: #ff4d4d;
+              font-size: 0.65rem;
+              padding-left: 5px;
+              font-weight: bold;
+            }
+            .box-chat-registerform-input-error {
+              border-color: #ff4d4d !important;
+              background: rgba(255, 77, 77, 0.05) !important;
+            }
+          }
+
           .box-chat-registerform-typeaccount {
             display: flex;
             gap: 10px;
@@ -542,6 +559,11 @@ body,
 
             &:hover {
               filter: brightness(1.1);
+            }
+            &:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+              filter: grayscale(1);
             }
           }
 

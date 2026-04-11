@@ -228,7 +228,48 @@ const filteredRegisterNeighborhoods = computed(() =>
 const selectingRegisterNeighborhood = (name: string) => {
   registerForm.value.bairro_criacao = name
   selectRegisterNeighborhood.value = false
+  InputFix('bairro_criacao')
 }
+
+const nameRegex = /(?!.*(\S)\1\1)^\S+( \S+)+/
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+
+const verifyErrorRegister = ref({
+  nome: false,
+  senha: false,
+  telefone: false,
+  email: false,
+  razaoSocial: false,
+  data: false,
+  bairro_criacao: false,
+})
+
+const InputFix = (field: string) => {
+  const form = registerForm.value
+
+  if (field === 'nome') verifyErrorRegister.value.nome = !nameRegex.test(form.nome)
+  if (field === 'senha') verifyErrorRegister.value.senha = !passwordRegex.test(form.senha)
+  if (field === 'email') verifyErrorRegister.value.email = !emailRegex.test(form.email)
+  if (field === 'data') verifyErrorRegister.value.data = form.data === ''
+  if (field === 'bairro_criacao')
+    verifyErrorRegister.value.bairro_criacao = form.bairro_criacao === ''
+  if (field === 'razao_social') {
+    const len = form.razao_social.replace(/\D/g, '').length
+    verifyErrorRegister.value.razaoSocial = razaoSocial.value === 'CPF' ? len !== 11 : len !== 14
+  }
+  if (field === 'telefone') {
+    verifyErrorRegister.value.telefone = form.telefone.replace(/\D/g, '').length !== 11
+  }
+}
+const allIsValidRegister = computed(() => {
+  const errors = verifyErrorRegister.value
+  const form = registerForm.value
+
+  return (
+    !Object.values(errors).some((v) => v === true) && Object.values(form).every((v) => v !== '')
+  )
+})
 
 onMounted(async () => {
   window.addEventListener('neighborhood-detected', handleDetected)
@@ -391,39 +432,78 @@ onUnmounted(() => {
                       CNPJ
                     </button>
                   </div>
-                  <input
-                    v-model="registerForm.nome"
-                    type="text"
-                    :placeholder="razaoSocial === 'CPF' ? 'Nome Completo' : 'Razão Social'"
-                    required
-                  />
-                  <input v-model="registerForm.email" type="text" placeholder="E-mail" required />
-                  <input
-                    v-model="registerForm.senha"
-                    type="password"
-                    placeholder="Senha"
-                    required
-                  />
-                  <input
-                    v-model="registerForm.razao_social"
-                    type="text"
-                    :placeholder="
-                      razaoSocial === 'CPF' ? 'CPF(000.000.000-00)' : 'CNPJ(00.000.000/0000-00)'
-                    "
-                    required
-                  />
-                  <input
-                    v-model="registerForm.data"
-                    type="date"
-                    min="1926-01-01"
-                    max="2025-12-31"
-                    required
-                  />
+                  <div class="box-chat-registerform-inputgroup">
+                    <input
+                      v-model="registerForm.nome"
+                      type="text"
+                      :class="{ 'box-chat-registerform-input-error': verifyErrorRegister.nome }"
+                      :placeholder="razaoSocial === 'CPF' ? 'Nome Completo' : 'Razão Social'"
+                      @blur="InputFix('nome')"
+                      required
+                    />
+                    <span v-if="verifyErrorRegister.nome" class="box-chat-registerform-errormsg"
+                      >Insira seu nome completo</span
+                    >
+                  </div>
+                  <div class="box-chat-registerform-inputgroup">
+                    <input
+                      v-model="registerForm.email"
+                      type="text"
+                      @blur="InputFix('email')"
+                      placeholder="E-mail"
+                      required
+                    />
+                    <span v-if="verifyErrorRegister.email" class="box-chat-registerform-errormsg"
+                      >Insira seu email valido</span
+                    >
+                  </div>
+                  <div class="box-chat-registerform-inputgroup">
+                    <input
+                      v-model="registerForm.senha"
+                      type="password"
+                      @blur="InputFix('senha')"
+                      placeholder="Senha"
+                      required
+                    />
+                    <span v-if="verifyErrorRegister.senha" class="box-chat-registerform-errormsg"
+                      >Insira uma senha forte</span
+                    >
+                  </div>
+                  <div class="box-chat-registerform-inputgroup">
+                    <input
+                      v-model="registerForm.razao_social"
+                      type="text"
+                      :placeholder="
+                        razaoSocial === 'CPF' ? 'CPF(000.000.000-00)' : 'CNPJ(00.000.000/0000-00)'
+                      "
+                      @blur="InputFix('razao_social')"
+                      required
+                    />
+                    <span
+                      v-if="verifyErrorRegister.razaoSocial"
+                      class="box-chat-registerform-errormsg"
+                      >Insira seu numero de registro valido</span
+                    >
+                  </div>
+                  <div class="box-chat-registerform-inputgroup">
+                    <input
+                      v-model="registerForm.data"
+                      type="date"
+                      min="1926-01-01"
+                      max="2025-12-31"
+                      @blur="InputFix('data')"
+                      required
+                    />
+                    <span v-if="verifyErrorRegister.data" class="box-chat-registerform-errormsg"
+                      >Insira uma data</span
+                    >
+                  </div>
                   <div class="box-chat-registerform-neighborhood" @click="handleInputDropdownClick">
                     <input
                       v-model="registerForm.bairro_criacao"
                       type="text"
                       placeholder="Seu bairro"
+                      @blur="InputFix('bairro_criacao')"
                       readonly
                       required
                     />
@@ -439,15 +519,30 @@ onUnmounted(() => {
                         {{ n }}
                       </li>
                     </ul>
+                    <span
+                      v-if="verifyErrorRegister.bairro_criacao"
+                      class="box-chat-registerform-errormsg"
+                      >Insira o bairro de criação da conta</span
+                    >
                   </div>
-                  <input
-                    v-model="registerForm.telefone"
-                    type="tel"
-                    placeholder="Seu numero de celular"
-                    pattern="\(\d{2}\)\s\d{5}-\d{4}"
-                    required
-                  />
-                  <button class="box-chat-registerform-btn" @click="handleRegistration">
+                  <div class="box-chat-registerform-inputgroup">
+                    <input
+                      v-model="registerForm.telefone"
+                      type="tel"
+                      placeholder="Seu numero de celular"
+                      @blur="InputFix('telefone')"
+                      pattern="\(\d{2}\)\s\d{5}-\d{4}"
+                      required
+                    />
+                    <span v-if="verifyErrorRegister.telefone" class="box-chat-registerform-errormsg"
+                      >Insira um numero de telefone</span
+                    >
+                  </div>
+                  <button
+                    class="box-chat-registerform-btn"
+                    :disabled="!allIsValidRegister"
+                    @click="handleRegistration"
+                  >
                     CADASTRAR
                   </button>
                   <div class="box-chat-loginform-verifications">
