@@ -157,7 +157,8 @@ const registerForm = ref({
 })
 
 const handleRegistration = async () => {
-  const { nome, razao_social, telefone, email, senha, data, bairro_criacao,bairro_id } = registerForm.value
+  const { nome, razao_social, telefone, email, senha, data, bairro_criacao, bairro_id } =
+    registerForm.value
 
   try {
     if (razaoSocial.value === 'CPF') {
@@ -341,7 +342,7 @@ onUnmounted(() => {
           />
           <ul class="box-report-dropdown">
             <li v-for="n in filteredNeighborhoods" :key="n.id" @click="selectManual(n.name)">
-              {{ n.name}}
+              {{ n.name }}
             </li>
           </ul>
           <button class="box-report-btn-change" @click="isChangingReport = false">Cancelar</button>

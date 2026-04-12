@@ -9,7 +9,7 @@ export interface UserCPF {
   descrição: string
   imagem_perfil_link: string
   data_nascimento: string
-  bairro_criacao: string,
+  bairro_criacao: string
   bairro_id: number
 }
 

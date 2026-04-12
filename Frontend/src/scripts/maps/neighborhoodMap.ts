@@ -6,9 +6,9 @@ import { safeFetch } from '../utils/clientApi'
 let polygonsCleaner: Map<string, google.maps.Polygon> = new Map()
 
 export interface NeighborhoodInfo {
-  id: number;
-  name: string;
-} 
+  id: number
+  name: string
+}
 
 export const clearAllPolygons = () => {
   polygonsCleaner.forEach((p) => p.setMap(null))
@@ -53,13 +53,15 @@ export const fetchAllNeighborhoods = async (cityName: string): Promise<Neighborh
     const neighborhoodPackage = data.elements
       .map((el: any) => ({
         id: el.id,
-        name: el.tags.name
+        name: el.tags.name,
       }))
       .filter((n: NeighborhoodInfo) => n.name !== '')
 
-    const sendNeighborhoods = [...new Map<string, NeighborhoodInfo>(neighborhoodPackage.map((n: NeighborhoodInfo) => [n.name, n])
-      ).values()
-    ].sort((a: NeighborhoodInfo, b:NeighborhoodInfo) => a.name.localeCompare(b.name))
+    const sendNeighborhoods = [
+      ...new Map<string, NeighborhoodInfo>(
+        neighborhoodPackage.map((n: NeighborhoodInfo) => [n.name, n]),
+      ).values(),
+    ].sort((a: NeighborhoodInfo, b: NeighborhoodInfo) => a.name.localeCompare(b.name))
 
     cacheManager.set(cacheNeighborhoods, sendNeighborhoods, 7)
 
