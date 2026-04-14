@@ -17,13 +17,13 @@ public record Public_PersonAccountData(
     long district_Id,
     string district_Name,
 
-    List<Advertisement> Visible_Ads,
+    List<Advertisement> visible_Ads,
 
     DateOnly Birthday
 );
 public record Private_PersonAccountData(
     long advertisement_Slots_Amount,
-    List<Advertisement> Hidden_Ads
+    List<Advertisement> hidden_Ads
 );
 //----------------------------------------------------------
 
@@ -40,12 +40,12 @@ public record Public_BusinessAccountData(
     long district_Id,
     string district_Name,
 
-    List<Advertisement> Visible_Ads,
+    List<Advertisement> visible_Ads,
 
     string cnpj
 );
 
 public record Private_BusinessAccountData(
     long advertisement_Slots_Amount,
-    List<Advertisement> Hidden_Ads
+    List<Advertisement> hidden_Ads
 );

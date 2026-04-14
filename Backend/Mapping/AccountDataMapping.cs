@@ -9,7 +9,7 @@ public static  class AccountDataMapping
             profile_Picture_Link: account.ProfilePictureLink,
             district_Id: account.DistrictId,
             district_Name: districtName,
-            Visible_Ads:  new(),
+            visible_Ads:  new(),
 
             Birthday: account.Birthday
         );
@@ -19,7 +19,7 @@ public static  class AccountDataMapping
         {
             privateData = new Private_PersonAccountData(
                 advertisement_Slots_Amount: account.AdvertisementSlotsAmount,
-                Hidden_Ads: new()
+                hidden_Ads: new()
             );
         }
 
@@ -38,7 +38,7 @@ public static  class AccountDataMapping
             profile_Picture_Link: account.ProfilePictureLink,
             district_Id: account.DistrictId,
             district_Name: districtName,
-            Visible_Ads:  new(),
+            visible_Ads:  new(),
 
             cnpj: account.CNPJ
         );
@@ -48,7 +48,7 @@ public static  class AccountDataMapping
         {
             privateData = new Private_BusinessAccountData(
                 advertisement_Slots_Amount: account.AdvertisementSlotsAmount,
-                Hidden_Ads: new()
+                hidden_Ads: new()
             );
         }
 
