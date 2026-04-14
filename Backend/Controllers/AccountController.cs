@@ -82,7 +82,7 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> GetAccountData(int account_id)
     {
         RequestError? error = null;
-        GetAccountDataResponse response = null;
+        GetAccountDataResponse response;
 
         string? clientIdClaim = null;
         string? clientAccountTypeClaim = null;
@@ -111,7 +111,7 @@ public class AccountController : ControllerBase
             }
         }
         
-        (response, error) = await this._accountService.GetAccountData(account_id, accountType, isRequestingSelfData);
+        (response, error) = await this._accountService.GetAccountData(account_id, accountType!, isRequestingSelfData);
         
         if(error is not null)
         {

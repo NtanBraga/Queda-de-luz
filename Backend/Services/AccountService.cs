@@ -150,7 +150,7 @@ public class AccountService : IAccountService
 
     public async Task<(GetAccountDataResponse, RequestError?)> GetAccountData(int account_id, string accountType, bool includePrivateData)
     {
-        RequestError? error = null;
+        // RequestError? error = null;
         PersonAccountData? personData = null;
         BusinessAccountData? businessData = null;
 
@@ -220,7 +220,7 @@ public interface IAccountService
 {
     public Task<BaseAccount> CreateAccountAsync(BaseAccount baseAccount);
     public Task<(string, RequestError?)> LoginAccountGetTokenAsync(LoginAccountRequest loginData);
-    public Task<(GetAccountDataResponse, RequestError?)> GetAccountData(int account_id, string? clientAccountTypeClaim, bool includePrivateData);
+    public Task<(GetAccountDataResponse, RequestError?)> GetAccountData(int account_id, string accountType, bool includePrivateData);
 
     public string HashPassword(string unhashedPassword);
 }

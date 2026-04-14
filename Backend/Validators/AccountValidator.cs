@@ -17,11 +17,11 @@ public  class AccountValidator
         SqlMapper.GridReader results = await dbContext.QueryMultipleAsync(
             """
                 SELECT (EXISTS(
-                    SELECT * FROM Person_account AS p WHERE p.Person_account_id = @accountId;
+                    SELECT * FROM Person_account AS p WHERE p.Person_account_id = @accountId
                 )) AS is_person_account;
 
                 SELECT (EXISTS(
-                    SELECT * FROM Business_account AS b WHERE b.Business_account_id = @accountId;
+                    SELECT * FROM Business_account AS b WHERE b.Business_account_id = @accountId
                 )) AS is_business_account;
             """,
             new {accountId = accountId}
