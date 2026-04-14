@@ -1,11 +1,11 @@
 using Dapper;
 using Microsoft.AspNetCore.Http.Features;
 
-public  class AccountSignInOutValidator
+public  class AccountValidator
 {
     private IBlackoutMapConnectionFactory _connectionFactory;
 
-    public AccountSignInOutValidator(IBlackoutMapConnectionFactory connectionFactory)
+    public AccountValidator(IBlackoutMapConnectionFactory connectionFactory)
     {
         this._connectionFactory = connectionFactory;
     }
