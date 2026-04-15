@@ -7,10 +7,10 @@ import {
   type NeighborhoodInfo,
   neighborhoodOutlines,
 } from './scripts/maps/neighborhoodMap.ts'
-import { logarContaCPF, registrarContaCPF } from './scripts/user/userCPF.ts'
-import { logarContaCNPJ, registrarContaCNPJ } from './scripts/user/userCNPJ.ts'
+import { registrarContaCPF } from './scripts/user/userCPF.ts'
+import { registrarContaCNPJ } from './scripts/user/userCNPJ.ts'
 import type { UserGeneric, UserCPF, UserCNPJ, UserLogin } from './scripts/user/userGeneric.ts'
-import { fetchLogin } from './scripts/user/authLogin.ts'
+import { giveAccountInfo, verifyLogin } from './scripts/user/authLogin.ts'
 
 //Variaveis de teste
 const city = ref<string>('Porto Alegre')
@@ -142,14 +142,14 @@ const loadNeighborhoodList = async (attempts = 3) => {
 
 //Variaveis de conta
 
-const currentUser = ref<UserLogin>({email: '', senha: ''})
+const currentUser = ref<UserLogin>({ nome: '', senha: '' })
 const loggedUser = ref(false)
 const isRegistered = ref(false)
 const razaoSocial = ref('CPF')
 const selectRegisterNeighborhood = ref(false)
 
 const loginForm = ref({
-  email: '',
+  nome: '',
   senha: '',
 })
 
@@ -164,22 +164,17 @@ const registerForm = ref({
   bairro_id: 0,
 })
 
-const handleLogin = async() => {
-  try{
-    const authData = await fetchLogin(loginForm.value)
+const handleLogin = async () => {
+  try {
+    const authData = await giveAccountInfo(loginForm.value)
 
-    if(authData.Person_Details !== null) {
-      currentUser.value = await logarContaCPF(authData.Username)
-    }else{
-      currentUser.value = await logarContaCNPJ(authData.Username)
-    }
+    
 
     loggedUser.value = true
     activeTab.value = 'chat'
-    console.log(`Acesso na conta de ${currentUser.value.email} carregado com sucesso`)
-
-  }catch(e){
-    console.error("Erro ao tentar login: ", e)
+    console.log(`Acesso na conta de ${currentUser.value.nome} carregado com sucesso`)
+  } catch (e) {
+    console.error('Erro ao tentar login: ', e)
   }
 }
 
@@ -437,11 +432,9 @@ onUnmounted(() => {
               <Transition name="slide" mode="out-in">
                 <div v-if="isRegistered" class="box-chat-loginform">
                   <h3>Acessar a conta</h3>
-                  <input type="text" placeholder="E-mail" />
-                  <input type="password" placeholder="Senha" />
-                  <button class="box-chat-loginform-button" @click="loggedUser = true">
-                    ENTRAR
-                  </button>
+                  <input v-model="loginForm.nome" type="text" placeholder="Nome" />
+                  <input v-model="loginForm.senha" type="password" placeholder="Senha" />
+                  <button class="box-chat-loginform-button" @click="handleLogin">ENTRAR</button>
                   <div class="box-chat-loginform-verifications">
                     <span class="box-chat-loginform-forgot-password">Esqueceu de sua senha?</span>
                     <span class="box-chat-loginform-not-registered" @click="isRegistered = false"

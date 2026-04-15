@@ -19,4 +19,4 @@ export interface UserCNPJ extends UserGeneric {
   slot_anuncio_quantidade: number
 }
 
-export type UserLogin = Pick<UserGeneric, 'email' | 'senha'>
+export type UserLogin = Pick<UserGeneric, 'nome' | 'senha'>

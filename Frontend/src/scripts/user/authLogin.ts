@@ -1,30 +1,83 @@
-import { type UserLogin } from "./userGeneric";
+import { jwtDecode } from 'jwt-decode'
+import { type UserLogin } from './userGeneric'
 
-const API_BANCO_DE_DADOS = 'http://localhost:5176/accounts/login'
+const API_BANCO_DE_DADOS = 'http://localhost:5176/accounts'
 
-export const fetchLogin = async (credentials: UserLogin) => {
-    const payload = {
-        Username: credentials.email,
-        Password: credentials.senha,
+const fetchToken = async (credentials: UserLogin) => {
+  const payload = {
+    Username: credentials.nome,
+    Password: credentials.senha,
+  }
+
+  try {
+    const response = await fetch(`${API_BANCO_DE_DADOS}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Falha na autenticação de login: ${response.status}`)
     }
 
+    const data = await response.json()
+
+    console.log(data.token)
+
+    localStorage.setItem('userToken', data.token)
+
+    return data.token
+  } catch (e) {
+    console.error('Erro ao tentar conexão com banco de dados: ', e)
+    throw e
+  }
+}
+
+export const verifyLogin = async(token: string) => {
+    
+    const decode: any = jwtDecode(token)
+
+    console.log(decode)
+
+    const userId = parseInt(decode.nameid)
+
+    return userId
+}
+
+export const giveAccountInfo = async(credentials: UserLogin) => {
+    
+    const token = await fetchToken(credentials)
+
+    const userId = await verifyLogin(token)
+
+    console.log(`Esse é o token: ${token}, e esse é o userId: ${userId}`)
+
     try{
-        const response = await fetch(API_BANCO_DE_DADOS, {
+        
+        const response = await fetch(`${API_BANCO_DE_DADOS}/${userId}`, {
             method: 'GET',
             headers: {
-                'Content-type': 'application/json',
+                'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(payload)
         })
 
         if(!response.ok) {
-            throw new Error(`Falha na autenticação de login: ${response.status}`)
+            if(response.status === 401){
+                throw new Error("Sessão expirada.")
+            }
+            throw new Error(`Erro ao tentar dar GET nas informações de usuario: ${response.status}`)
         }
 
-        return await response.json()
+        const data = await response.json()
+        console.log(data)
+
+        return data
+
     }catch(e){
-        console.error("Erro ao tentar conexão com banco de dados: ", e)
+        console.error("Erro ao buscar conta: ", e)
         throw e
     }
 }
