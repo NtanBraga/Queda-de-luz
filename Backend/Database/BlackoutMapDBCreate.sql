@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS Advertisement  (
 	Valid_to_boost BOOLEAN DEFAULT(FALSE) NOT NULL,
 	UTC_last_edit INTEGER DEFAULT ( unixepoch('now') ) NOT NULL,
 	UTC_boost_ends_at INTEGER DEFAULT ( 0 ) NOT NULL,
+    Redirect_link TEXT,
 
 	Message_id INTEGER NOT NULL,
 	FOREIGN KEY (Message_id) REFERENCES Message(Message_id)
