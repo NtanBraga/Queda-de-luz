@@ -123,7 +123,7 @@ public class AccountController : ControllerBase
 
     [HttpPost]
     [Authorize]
-    [Route("/{account_id}/ads")]
+    [Route("{account_id}/ads")]
     public async Task<IActionResult> PostAdvertisementAsync(PostAdvertisementRequest request, int account_id)
     {
         RequestError? error;
@@ -132,7 +132,8 @@ public class AccountController : ControllerBase
                                                     : int.Parse(clientIdClaim);
 
         if(account_id != parsedClientId){
-            return Forbid("You Cannot Create an Ad for another account");
+            return this.StatusCode(StatusCodes.Status403Forbidden, 
+            "You Cannot Create an Ad for another account");
         }
 
         string accountType = User.FindFirstValue(ClaimTypes.Role)!;

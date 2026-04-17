@@ -215,10 +215,11 @@ public class AccountService : IAccountService
         return (response, null);
     }
 
-    public async Task<(Advertisement?, RequestError?)> PostAdvertisementAsync(PostAdvertisementRequest request, int parsedClientId, string accountType)
+    public async Task<(Advertisement?, RequestError?)> PostAdvertisementAsync(PostAdvertisementRequest request, int accountId, string accountType)
     {
         RequestError? error = null;
-        var dbContext = await this._connectionFactory.CreateConnectionAsync();
+        using var dbContext = await this._connectionFactory.CreateConnectionAsync();
+        bool adValidToBoost = nameof(BusinessAccount) == accountType;
 
         //Verify if it has enough slots available
         int slotsAvailable = (int)await dbContext.QuerySingleAsync<long>(
@@ -241,16 +242,45 @@ public class AccountService : IAccountService
                     , 0))
                 ) AS Slots_Available;
             """,
-            new{ accountId = parsedClientId }
+            new{ accountId = accountId }
         );
 
-        //create message, then advertisement
+        //Validates the intended action
+        if(slotsAvailable <= 0){
+            error = new RequestError(
+                StatusCodes.Status400BadRequest,
+                "Account already has all Advertisement slots in use."
+            );
 
-        //select ad by id
+            await dbContext.CloseAsync();
+            return (default, error);
+        }
 
-        //return as advertisement class
+        //Create message, then Advertisement entry in the Database
+        var message_ad = await dbContext.QuerySingleAsync<Message>(
+            """
+                INSERT INTO MESSAGE (Message_text, Is_hidden, Base_Account_Id) 
+                VALUES (@messageText, @isHidden, @accountId)
+                RETURNING *;
+            """,
+            new{ messageText = request.ad_Text ?? ".",  isHidden = request.is_Hidden ?? true, 
+                 accountId = accountId}
+        );
+
+        var advertisement = await dbContext.QuerySingleAsync<Advertisement>(
+            """
+                INSERT INTO Advertisement (Message_id, Redirect_link, Valid_to_boost)
+                VALUES (@messagId, @redirectLink, @ValidBoost)
+                RETURNING Advertisement_id, Valid_to_boost, UTC_last_edit, UTC_boost_ends_at, Redirect_link;
+            """,
+            new {messagId = message_ad.Id, redirectLink = request.redirect_Link, ValidBoost = adValidToBoost}
+        );
+
+        //IMPORTANT! compose generated objects
+        Advertisement response = new Advertisement(advertisement, message_ad);
+
         await dbContext.CloseAsync();
-        return default;
+        return (response, null);
     }
 
 }
@@ -260,7 +290,7 @@ public interface IAccountService
     public Task<BaseAccount> CreateAccountAsync(BaseAccount baseAccount);
     public Task<(string, RequestError?)> LoginAccountGetTokenAsync(LoginAccountRequest loginData);
     public Task<(GetAccountDataResponse, RequestError?)> GetAccountData(int account_id, string accountType, bool includePrivateData);
-    public Task<(Advertisement?, RequestError?)> PostAdvertisementAsync(PostAdvertisementRequest request, int parsedClientId, string accountType);
+    public Task<(Advertisement?, RequestError?)> PostAdvertisementAsync(PostAdvertisementRequest request, int accountId, string accountType);
 
     public string HashPassword(string unhashedPassword);
 }
