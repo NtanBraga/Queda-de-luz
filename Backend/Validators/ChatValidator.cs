@@ -13,7 +13,7 @@ public class ChatValidator
 
     public async Task<(bool, RequestError?)> IsValid(PostMessageRequest request, int chatId)
     {
-        const int Message_Max_Char_Size = 1000;
+        const int Message_Max_Char_Length = 1000;
         RequestError? error = null;
 
         using var dbContext = await this._connectionFactory.CreateConnectionAsync();
@@ -49,7 +49,7 @@ public class ChatValidator
         }
         
         //message too large
-        if(request.Message_Text.Length > Message_Max_Char_Size)
+        if(request.Message_Text.Length > Message_Max_Char_Length)
         {
             error = new RequestError(
                 StatusCodes.Status400BadRequest,

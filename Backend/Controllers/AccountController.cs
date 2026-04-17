@@ -121,4 +121,42 @@ public class AccountController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost]
+    [Authorize]
+    [Route("{account_id}/ads")]
+    public async Task<IActionResult> PostAdvertisementAsync(PostAdvertisementRequest request, int account_id)
+    {
+        RequestError? error;
+        string? clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? null;
+        int? parsedClientId = clientIdClaim is null ? null
+                                                    : int.Parse(clientIdClaim);
+
+        if(account_id != parsedClientId){
+            return this.StatusCode(StatusCodes.Status403Forbidden, 
+            "You Cannot Create an Ad for another account");
+        }
+
+        string accountType = User.FindFirstValue(ClaimTypes.Role)!;
+
+        (bool isValid, error) = this._validator.IsValid(request);
+        if(isValid == false){
+            return this.StatusCode(error!.StatusCode, error.Message);
+        }
+
+        PostAdvertisementResponse response;
+        Advertisement? result;
+        try{
+            (result, error) = await this._accountService.PostAdvertisementAsync(request, (int)parsedClientId, accountType);
+        }
+        catch(Exception){
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "server error");
+        }
+
+        if(error is not null){
+            return this.StatusCode(error.StatusCode, error.Message);
+        }
+
+        response = result!.ToPostAdvertisementResponse();
+        return Ok(response);
+    }
 }

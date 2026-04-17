@@ -137,4 +137,30 @@ public  class AccountValidator
 
         return (isValid, error);
     }
+
+    public (bool, RequestError?) IsValid(PostAdvertisementRequest request)
+    {
+        const int Message_Max_Char_Length = 1000;
+        RequestError? error = null;
+
+        if(request.ad_Text is not null && request.ad_Text.Length > Message_Max_Char_Length)
+        {
+            error = new(
+                StatusCodes.Status400BadRequest,
+                $"text length cannot be bigger than {Message_Max_Char_Length}"
+            );
+            return (false, error);
+        }
+
+        if(request.redirect_Link is not null && request.redirect_Link.Length > Message_Max_Char_Length)
+        {
+            error = new(
+                StatusCodes.Status400BadRequest,
+                 $"link length cannot be bigger than {Message_Max_Char_Length}"
+            );
+            return (false, error);
+        }
+        
+        return (true, error);
+    }
 }

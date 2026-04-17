@@ -1,4 +1,4 @@
-public static  class AccountDataMapping
+public static class AccountDataMapping
 {
     public static PersonAccountData ToPersonAccountData(this PersonAccount account, string districtName, bool includePrivateData)
     {

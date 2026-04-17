@@ -40,6 +40,16 @@ GET {{BlackoutMap_HostAddress}}/accounts/2
 Authorization: Bearer accountJWTtokenHere
 Accept: application/json
 
+POST {{BlackoutMap_HostAddress}}/accounts/3/ads
+Authorization: Bearer accountJWTtokenHere
+Content-Type: application/json
+
+{
+    "ad_Text": "Buy my Stuff",
+    "redirect_Link": "MyLink.com",
+    "is_Hidden": true
+}
+
 #GET Chat Members
 GET {{BlackoutMap_HostAddress}}/chats/5320131/members
 Accept: application/json
@@ -74,4 +84,12 @@ Content-Type: application/json
 {
     "Username": "NomeNome333",
     "Password": "sen423234ha"
+}
+
+POST {{BlackoutMap_HostAddress}}/accounts/login
+Content-Type: application/json
+
+{
+    "Username": "NomePrimeiro",
+    "Password": "123456"
 }
