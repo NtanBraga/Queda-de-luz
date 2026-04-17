@@ -2,7 +2,7 @@ public record PostAdvertisementResponse(
     int ad_Id,
     bool valid_To_Boost,
 
-    string text,
+    string ad_Text,
     string? image_Link,
     string? redirect_Link,
 	bool is_Hidden,

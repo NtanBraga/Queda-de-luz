@@ -88,9 +88,9 @@ public class AccountService : IAccountService
 
     public async Task<BaseAccount> CreateAccountAsync(BaseAccount baseAccount)
     { 
-        using var dbcontext = await this._connectionFactory.CreateConnectionAsync();
+        using var dbContext = await this._connectionFactory.CreateConnectionAsync();
 
-        long accountId = await dbcontext.QuerySingleAsync<long>(
+        long accountId = await dbContext.QuerySingleAsync<long>(
             """
                 INSERT INTO Base_Account (Username, Hashed_password, Email, District_id)
                 VALUES (@Username, @Hashed_password, @Email, @District_id)
@@ -103,7 +103,7 @@ public class AccountService : IAccountService
         switch(baseAccount)
         {
             case PersonAccount pAccount: 
-                pAccount = await dbcontext.QuerySingleAsync<PersonAccount>(
+                pAccount = await dbContext.QuerySingleAsync<PersonAccount>(
                 """
                     INSERT INTO Person_Account (Person_Account_id, Birthday)
                     VALUES (@AccountId, @Birthday);
@@ -118,12 +118,12 @@ public class AccountService : IAccountService
                     Birthday = JsonSerializer.Serialize(pAccount.Birthday).Replace("\"", string.Empty)}
                 );
     
-            dbcontext.Close();
+            dbContext.Close();
             return pAccount;
 
             //----------------------------------------------------------------------------------
             case BusinessAccount bAccount: 
-                bAccount = await dbcontext.QuerySingleAsync<BusinessAccount>(
+                bAccount = await dbContext.QuerySingleAsync<BusinessAccount>(
                 """
                     INSERT INTO Business_Account (Business_Account_id, Cnpj)
                     VALUES (@AccountId, @CNPJ);
@@ -140,11 +140,11 @@ public class AccountService : IAccountService
                 new{AccountId = accountId, CNPJ = bAccount.CNPJ }
                 );
             
-            dbcontext.Close();
+            dbContext.Close();
             return bAccount;
         }
 
-        dbcontext.Close();
+        dbContext.Close();
         throw new InvalidDataException("Object is neither Person nor Business Account");
     }
 
@@ -214,6 +214,45 @@ public class AccountService : IAccountService
         GetAccountDataResponse response = new GetAccountDataResponse(personData, businessData);
         return (response, null);
     }
+
+    public async Task<(Advertisement?, RequestError?)> PostAdvertisementAsync(PostAdvertisementRequest request, int parsedClientId, string accountType)
+    {
+        RequestError? error = null;
+        var dbContext = await this._connectionFactory.CreateConnectionAsync();
+
+        //Verify if it has enough slots available
+        int slotsAvailable = (int)await dbContext.QuerySingleAsync<long>(
+            """
+                SELECT ( 
+                	--get total amount of ad slots of the account
+                    (SELECT Advertisement_slots_amount FROM Base_Account WHERE Base_Account_id = @accountId ) 
+                    
+                    --Subtraction operation
+                    - 
+
+                    --get all the current published ads of the account
+                    (SELECT COALESCE((
+                        SELECT COUNT(ad.Advertisement_id)
+                        FROM Advertisement    AS ad 
+                            JOIN Message      AS m  ON ad.Message_id = m.Message_id
+                            JOIN base_Account AS ba ON ba.Base_Account_id = m.Base_Account_id 
+                        WHERE ba.Base_Account_id = @accountId
+                        GROUP BY ba.Base_Account_id)
+                    , 0))
+                ) AS Slots_Available;
+            """,
+            new{ accountId = parsedClientId }
+        );
+
+        //create message, then advertisement
+
+        //select ad by id
+
+        //return as advertisement class
+        await dbContext.CloseAsync();
+        return default;
+    }
+
 }
 
 public interface IAccountService
@@ -221,6 +260,7 @@ public interface IAccountService
     public Task<BaseAccount> CreateAccountAsync(BaseAccount baseAccount);
     public Task<(string, RequestError?)> LoginAccountGetTokenAsync(LoginAccountRequest loginData);
     public Task<(GetAccountDataResponse, RequestError?)> GetAccountData(int account_id, string accountType, bool includePrivateData);
+    public Task<(Advertisement?, RequestError?)> PostAdvertisementAsync(PostAdvertisementRequest request, int parsedClientId, string accountType);
 
     public string HashPassword(string unhashedPassword);
 }
