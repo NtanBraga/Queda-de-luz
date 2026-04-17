@@ -121,4 +121,17 @@ public class AccountController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost]
+    [Authorize]
+    [Route("/{account_id}/ads")]
+    public async Task<IActionResult> PostAdvertisementAsync(PostAdvertisementRequest request, int account_id)
+    {
+
+
+
+        return default;
+    }
+
+
+
 }
