@@ -24,7 +24,7 @@ const openMenu = ref(true)
 const openChat = ref(true)
 const newMessage = ref('')
 const activeTab = ref('chat')
-const messages = ref([{ user: 'Test', text: 'Mensagem de teste.' }])
+const messages = ref([{ user: 'Usuário', text: 'Bom dia.' }])
 const selectedTab = (tabName: string) => {
   activeTab.value = activeTab.value === tabName ? 'chat' : tabName
 }
@@ -368,9 +368,9 @@ onUnmounted(() => {
     <div class="box-report-wrapper">
       <div class="box-report-card">
         <template v-if="!isChangingReport">
-          <p class="box-report-label">Reportar falta de luz:</p>
+          <p class="box-report-label">Reportar falta de luz em:</p>
           <h3 class="box-report-neighborhood">{{ displayNeighborhood }}</h3>
-          <button class="box-report-btn-main" @click="handleReport">SEM LUZ IRMÃO</button>
+          <button class="box-report-btn-main" @click="handleReport">LOCAL SEM LUZ</button>
           <button class="box-report-btn-change" @click="isChangingReport = true">
             Mudar bairro
           </button>
@@ -492,7 +492,6 @@ onUnmounted(() => {
                     <input
                       v-model="registerForm.nome"
                       type="text"
-                      :class="{ 'box-chat-registerform-input-error': verifyErrorRegister.nome }"
                       :placeholder="razaoSocial === 'CPF' ? 'Nome Completo' : 'Razão Social'"
                       @blur="InputFix('nome')"
                       required
