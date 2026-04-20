@@ -1,4 +1,3 @@
 public record GetActiveAdsRequest_QueryParams(
-    int? district_Id,
-    string? placeholder
+    int? district_Id
 );

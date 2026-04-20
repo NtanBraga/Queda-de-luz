@@ -27,6 +27,9 @@ public class AdvertisementPageController : ControllerBase
             return this.StatusCode(error!.StatusCode, error.Message);
         }
 
-        return default;
+        List<ActiveAds> activeAds = await this._adPageService.GetActiveAdsAsync(queryParams);
+        GetActiveAdsResponse response = new GetActiveAdsResponse(activeAds);
+        
+        return Ok(response);
     }
 }
