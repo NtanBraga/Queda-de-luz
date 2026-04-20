@@ -99,3 +99,6 @@ Content-Type: application/json
 
 GET {{BlackoutMap_HostAddress}}/adpage/ads?district_Id=1234
 Accept: application/json
+
+POST {{BlackoutMap_HostAddress}}/accounts/3/ads/1/boost
+Authorization: Bearer accountJWTtokenHere
