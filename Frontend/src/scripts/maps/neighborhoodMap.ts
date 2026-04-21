@@ -139,6 +139,9 @@ export const neighborhoodOutlines = async (
 
   const allBounds = new google.maps.LatLngBounds()
 
+  //Criar parametros para implementar funcionalidade de desligamento programado
+  //EX: func(Local, programado, não-programado) -> valores podendo ser nulos
+
   result.forEach(({ name, paths }) => {
     if (paths.length <= 0) return
     if (paths.length > 0) {

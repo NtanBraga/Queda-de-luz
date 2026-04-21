@@ -364,10 +364,15 @@ onUnmounted(() => {
   </div>
   <div class="below-content">
     <button v-if="!openMenu" @click="openMenu = true" class="button-power-outage-outside">
-      <img src="./assets/images/light_bulb.svg"/>
+      <img src="./assets/images/light_bulb.svg" />
     </button>
-    <button v-if="!openChat" @click="openChat = true" class="button-chat-outside" :class="{ 'shift-to-side': openMenu}">
-      <img src="./assets/images/chat.svg"/>
+    <button
+      v-if="!openChat"
+      @click="openChat = true"
+      class="button-chat-outside"
+      :class="{ 'shift-to-side': openMenu }"
+    >
+      <img src="./assets/images/chat.svg" />
     </button>
     <div class="box-report-wrapper">
       <div class="box-report-card">
@@ -401,10 +406,10 @@ onUnmounted(() => {
         <button class="button-power-outage-inside" @click="openMenu = false">X</button>
       </div>
       <ul class="lista-bairros-sem-luz">
-        <li v-if="neighborhoodsNoPower.length === 0" class="lista-items-bairros-sem-luz">
+        <li v-if="neighborhoodsNoPower.length === 0" class="lista-items-bairros-sem-luz status-safe">
           <strong>Nenhum bairro reportado</strong>
         </li>
-        <li v-for="n in neighborhoodsNoPower" :key="n" class="lista-items-bairros-sem-luz">
+        <li v-for="n in neighborhoodsNoPower" :key="n" class="lista-items-bairros-sem-luz status-alert">
           <strong>{{ n }}</strong>
         </li>
       </ul>
