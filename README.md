@@ -18,7 +18,7 @@ Sendo assim, o intuito é centralizar e informar sobre quedas de luz programadas
 ![Static Badge](https://img.shields.io/badge/v12.0-00FF00)
 
 ![.NET](https://img.shields.io/badge/.NET-512BD4?logo=dotnet&logoColor=fff)
-![Static Badge](https://img.shields.io/badge/v9.0-512BD4)
+![Static Badge](https://img.shields.io/badge/v10.0-512BD4)
 
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=000)
 ![Static Badge](https://img.shields.io/badge/v8%2013.6.233.8-yellow)
@@ -36,8 +36,9 @@ Sendo assim, o intuito é centralizar e informar sobre quedas de luz programadas
 
 Siga os passos para realizar a instalação dos processos do BackEnd e FrontEnd:
 
-Para o gerenciamento dos pacotes do FrontEnd é preciso instalar o Node.js na sua maquina:👉 [Downlaod do NodeJS](https://nodejs.org/pt).
-Para a execução do banco de dados do projeto é preciso instalar o .Net em seu computador:👉 [Downlaod do .Net](https://dotnet.microsoft.com/pt-br/download).
+Para o gerenciamento dos pacotes do FrontEnd é preciso instalar o Node.js na sua maquina:👉 [Download do NodeJS](https://nodejs.org/pt).
+
+Para a execução do banco de dados do projeto é preciso instalar o .Net em seu computador:👉 [Download do .Net](https://dotnet.microsoft.com/pt-br/download).
 
 Uma chave de API do Google Maps: 👉[Pegue a sua API aqui](https://mapsplatform.google.com/lp/maps-apis/)
 
