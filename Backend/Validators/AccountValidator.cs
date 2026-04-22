@@ -164,6 +164,40 @@ public  class AccountValidator
         return (true, error);
     }
 
+    public async Task<(bool, RequestError?)> IsAccountOwnerOfAdAsync(int accountId, int adId)
+    {
+        RequestError? error = null;
+        using var dbContext = await this._connectionFactory.CreateConnectionAsync();
+
+        bool? result = await dbContext.QueryFirstOrDefaultAsync<bool?>(
+            """
+                SELECT EXISTS( 
+                    SELECT * 
+                    FROM Advertisement AS ad
+                        JOIN Message AS m ON ad.Message_id = m.Message_id
+                    WHERE 
+                        ad.Advertisement_id = @adId AND
+                        m.Base_Account_id = @accountId
+                );
+            """,
+            new{adId = adId, accountId = accountId}
+        );
+
+        await dbContext.CloseAsync();
+
+        // for security reasons, if the ad exists but the user 
+        // requesting isnt the owner, they shouldnt know that the Ad even exists
+        if(result != true){
+            await dbContext.CloseAsync();
+            error = new RequestError(StatusCodes.Status404NotFound, 
+            $"Advertisement [{adId}] Not Found"
+            );
+            return (false, error);
+        }
+
+        return (true, null);
+    }
+
 
     public async Task<(bool, RequestError?)> IsAdValidToBoostAsync(int accountId, int adId)
     {
@@ -184,10 +218,12 @@ public  class AccountValidator
             new{adId = adId, accountId = accountId}
         );
 
+        // for security reasons, if the ad exists but the user 
+        // requesting isnt the owner, they shouldnt know that the Ad even exists
         if(result != true){
             await dbContext.CloseAsync();
             error = new RequestError(StatusCodes.Status404NotFound, 
-            $"Ad [{adId}] Not Found"
+            $"Advertisement [{adId}] Not Found"
             );
             return (false, error);
         }

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Text.Json;
 using Dapper;
 using Microsoft.VisualBasic;
@@ -334,6 +335,33 @@ public class AccountService : IAccountService
         return (response, null);
     }
 
+    public async Task<int> UpdateAdvertisementAsync(PutEditAdvertisementRequest request, int adId)
+    {
+        var dbContext = await this._connectionFactory.CreateConnectionAsync();
+        int rowsAffected = await dbContext.ExecuteAsync(
+            """
+                UPDATE Advertisement 
+                SET Redirect_link = @redirectLink,
+                    UTC_last_edit = unixepoch('now')
+                WHERE Advertisement_id = @adId;
+
+                UPDATE Message 
+                SET Message_text = @messageText, 
+                    Is_hidden = @isHidden, 
+                    Message_image_link = @imageLink
+                WHERE Message_id = (SELECT Message_id FROM Advertisement WHERE Advertisement_id = @adId LIMIT 1);
+            """,
+            new{redirectLink = request.redirect_Link, adId = adId, messageText = request.ad_Text, isHidden = request.is_Hidden,
+                imageLink = (byte?)null}
+        );
+
+        if(rowsAffected != 2){
+            throw new WarningException($"More than 1 entity where updated using AdvertisementId = {adId}");
+        }
+
+        return rowsAffected;
+    }
+
     public async Task<(PostBoostAdvertisementReponse?, RequestError?)> BoostAdvertisementAsync(int ad_id)
     {
         const int placeholder_DefaultBoostDurationDays = 30;
@@ -371,6 +399,7 @@ public interface IAccountService
     public Task<(string, RequestError?)> LoginAccountGetTokenAsync(LoginAccountRequest loginData);
     public Task<(GetAccountDataResponse, RequestError?)> GetAccountData(int account_id, string accountType, bool includePrivateData);
     public Task<(Advertisement?, RequestError?)> PostAdvertisementAsync(PostAdvertisementRequest request, int accountId, string accountType);
+    public Task<int> UpdateAdvertisementAsync(PutEditAdvertisementRequest request, int adId);
     public Task<(PostBoostAdvertisementReponse?, RequestError?)> BoostAdvertisementAsync(int ad_id);
 
     public string HashPassword(string unhashedPassword);

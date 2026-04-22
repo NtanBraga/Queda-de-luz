@@ -50,6 +50,16 @@ Content-Type: application/json
     "is_Hidden": true
 }
 
+PUT {{BlackoutMap_HostAddress}}/accounts/3/ads/1
+Authorization: Bearer accountJWTtokenHere
+Content-Type: application/json
+
+{
+    "ad_Text": "UPDATED",
+    "redirect_Link": "UPDATED",
+    "is_Hidden": false
+}
+
 #GET Chat Members
 GET {{BlackoutMap_HostAddress}}/chats/5320131/members
 Accept: application/json

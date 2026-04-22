@@ -180,6 +180,41 @@ public class AccountController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPut]
+    [Authorize]
+    [Route("{account_id}/ads/{ad_id}")]
+    public async Task<IActionResult> PutEditAdvertisementAsync(PutEditAdvertisementRequest request, int account_id, int ad_id)
+    {
+        RequestError? error;
+        string? clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? null;
+        int? parsedClientId = clientIdClaim is null ? null
+                                                    : int.Parse(clientIdClaim);
+
+        if(account_id != parsedClientId){
+            return this.StatusCode(StatusCodes.Status403Forbidden, 
+            "You Cannot Edit an Ad for another account");
+        }
+
+        (bool accountExists, var _, error) = await this._validator.AccountExistsAsync(account_id);
+        if(accountExists == false){
+            return this.StatusCode(error!.StatusCode, error.Message);
+        }
+
+        (bool accountOwnsAd, error) = await this._validator.IsAccountOwnerOfAdAsync(account_id, ad_id);
+        if(accountOwnsAd == false){
+            return this.StatusCode(error!.StatusCode, error.Message);
+        }
+
+        try{
+            await this._accountService.UpdateAdvertisementAsync(request, ad_id);
+        }
+        catch(Exception){
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "server error");
+        }
+
+        return NoContent();
+    }
+
     [HttpPost]
     [Authorize]
     [Route("{account_id}/ads/{ad_id}/boost")]
