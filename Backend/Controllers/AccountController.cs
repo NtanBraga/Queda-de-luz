@@ -97,8 +97,20 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet]
+    [Route("{account_username:regex(^[[a-zA-Z]]+[[^\\\\]]*$)}")]
+    public async Task<IActionResult> GetAccountData(string account_username)
+    {
+        (bool accountExists, int? accountId, RequestError? error) = await this._validator.AccountExistsAsync(account_username);  
+        if(accountExists == false){
+            return this.StatusCode(error!.StatusCode, error.Message);
+        }
+
+        return await this.GetAccountData((int)accountId!);
+    }
+
+    [HttpGet]
     [AllowAnonymous]
-    [Route("{account_id}")]
+    [Route("{account_id:int}")]
     public async Task<IActionResult> GetAccountData(int account_id)
     {
         RequestError? error = null;

@@ -51,6 +51,31 @@ public  class AccountValidator
         return (false, null, error);
     }
 
+    public async Task<(bool, int?, RequestError?)> AccountExistsAsync(string accountUsername)
+    {
+        using var dbContext = await this._connectionFactory.CreateConnectionAsync();
+        
+        int? accountId = await dbContext.QueryFirstOrDefaultAsync<int?>(
+            """
+                SELECT  Base_Account_id 
+                FROM    Base_Account 
+                WHERE   Username = @username;
+            """,
+            new {username = accountUsername}
+        );
+        await dbContext.CloseAsync();
+
+        if(accountId is null)
+        {
+            RequestError error = new RequestError(StatusCodes.Status404NotFound, 
+            $"User [{accountUsername}] Not Found");
+            return (false, null, error);
+        }
+
+        return (true, accountId, null);
+    }
+
+
     public async Task<(bool, RequestError?)> IsValid(PostAccountRequest request)
     {
         RequestError? error = null;
