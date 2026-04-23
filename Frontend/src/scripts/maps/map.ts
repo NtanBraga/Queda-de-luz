@@ -43,7 +43,7 @@ export async function initMap(elementId: string, city: string, neighborhoods: st
 
         window.dispatchEvent(
           new CustomEvent('map-neighborhood-clicked', {
-            detail: { name: neighborhoodClicked?.neighborhood },
+            detail: { name: neighborhoodClicked?.neighborhood, city:neighborhoodClicked?.city },
           }),
         )
       }

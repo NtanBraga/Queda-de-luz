@@ -287,6 +287,13 @@ body,
           box-shadow: 0 6px 0px #000;
           transition: all 0.05s;
         }
+
+        &:disabled{
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: translateY(-2px);
+        }
+
       }
       .box-report-btn-change {
         display: block;
