@@ -131,13 +131,13 @@ body,
     .ads-body {
       color: #1a1a1a;
 
-      .ads-ad-grid{
+      .ads-ad-grid {
         display: grid;
-        grid-template-columns: repeat(4,1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 15px;
         margin-bottom: 25px;
       }
-      .ads-ad-slot{
+      .ads-ad-slot {
         aspect-ratio: 1/1;
         background: #1a1a1a;
         border: 2px solid #1a1a1a;
@@ -148,22 +148,22 @@ body,
         @include display-on-center();
         flex-direction: column;
       }
-      .ads-placeholder{
+      .ads-placeholder {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 8px;
-        span{
+        span {
           font-size: 0.7rem;
           font-weight: 800;
           color: $bg-color-primary;
         }
-        .ads-icon-mini{
+        .ads-icon-mini {
           width: 25px;
           filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(10deg);
         }
 
-        &:hover{
+        &:hover {
           transform: scale(1.05) translateY(-5px);
           background: #333;
           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -898,10 +898,14 @@ body,
                 color: white;
                 cursor: pointer;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                outline: none;
 
-                &:hover {
-                  background: rgba(241, 210, 69, 0.1);
-                  color: $bg-color-primary;
+                &:hover,
+                &:focus {
+                  background: $bg-color-primary;
+                  color: #1a1a1a;
+                  font-weight: 700;
+                  box-shadow: inset 4px 0 0 #1a1a1a;
                 }
               }
 

@@ -239,7 +239,6 @@ const handleRegistration = async () => {
       await registrarContaCNPJ(newUser)
     }
 
-    loggedUser.value = true
     isRegistered.value = true
   } catch (error) {
     console.error('Falha ao realizar registro:', error)
@@ -464,10 +463,10 @@ onUnmounted(() => {
           <div class="box-chat-toggle-profile-online">
             <span class="button-switch-profile" @click="handleLoginStay">{{
               activeTab === 'profile'
-                ? loggedUser
+                ? 'Voltar ao chat'
+                : loggedUser
                   ? 'Meu perfil'
-                  : 'Voltar ao chat'
-                : 'Entrar / Cadastro'
+                  : 'Entrar / Cadastro'
             }}</span>
             <span
               v-if="loggedUser"
@@ -610,8 +609,11 @@ onUnmounted(() => {
                       type="text"
                       placeholder="Seu bairro"
                       @blur="InputFix('bairro_criacao')"
+                      @keydown.enter.prevent="handleInputDropdownClick"
+                      @keydown.space.prevent="handleInputDropdownClick"
                       readonly
                       required
+                      tabindex="0"
                     />
                     <ul
                       v-if="selectRegisterNeighborhood && filteredRegisterNeighborhoods.length"
@@ -620,7 +622,9 @@ onUnmounted(() => {
                       <li
                         v-for="n in filteredNeighborhoods"
                         :key="n.id"
-                        @click.stop="selectingRegisterNeighborhood(n)"
+                        @mousedown.prevent="selectingRegisterNeighborhood(n)"
+                        @keydown.enter.prevent="selectingRegisterNeighborhood(n)"
+                        tabindex="0"
                       >
                         {{ n.name }}
                       </li>
