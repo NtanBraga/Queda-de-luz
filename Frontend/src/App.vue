@@ -73,7 +73,12 @@ const handleReport = async () => {
   console.log(`Enviado para a API o reporte: ${displayNeighborhood.value}`)
   const reportedNeighborhood = displayNeighborhood.value
 
-  if (!reportedNeighborhood || reportedNeighborhood === 'Detectando...' || reportedNeighborhood === 'Fora de area.' ) return
+  if (
+    !reportedNeighborhood ||
+    reportedNeighborhood === 'Detectando...' ||
+    reportedNeighborhood === 'Fora de area.'
+  )
+    return
 
   if (!neighborhoodsNoPower.value.includes(reportedNeighborhood)) {
     neighborhoodsNoPower.value.push(reportedNeighborhood)
@@ -333,12 +338,12 @@ onMounted(async () => {
   window.addEventListener('map-neighborhood-clicked', (e: any) => {
     const isDesiredCity = e.detail.city
 
-    if(isDesiredCity && isDesiredCity !== city.value){
+    if (isDesiredCity && isDesiredCity !== city.value) {
       putManualLocation.value = 'Fora de area.'
-    }else{
+    } else {
       putManualLocation.value = e.detail.name
     }
-    
+
     isChangingReport.value = false
     console.log(`Bairro clickado: ${e.detail.name}`)
   })
@@ -420,7 +425,15 @@ onUnmounted(() => {
         <template v-if="!isChangingReport">
           <p class="box-report-label">Reportar falta de luz em:</p>
           <h3 class="box-report-neighborhood">{{ displayNeighborhood }}</h3>
-          <button class="box-report-btn-main" :disabled="displayNeighborhood === 'Fora de area.' || displayNeighborhood === 'Detectando...'" @click="handleReport">LOCAL SEM LUZ</button>
+          <button
+            class="box-report-btn-main"
+            :disabled="
+              displayNeighborhood === 'Fora de area.' || displayNeighborhood === 'Detectando...'
+            "
+            @click="handleReport"
+          >
+            LOCAL SEM LUZ
+          </button>
           <button class="box-report-btn-change" @click="isChangingReport = true">
             Mudar bairro
           </button>
