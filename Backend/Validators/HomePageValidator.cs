@@ -19,7 +19,7 @@ public class HomePageValidator
         //If IsFixed=true, verify if is there at least one IsFixed=false, otherwise bad request
 
         string extraQuery = string.Empty;
-        if(request.Is_Fixed == true)
+        if(request.is_Fixed == true)
         {
             extraQuery =
             """
@@ -43,7 +43,7 @@ public class HomePageValidator
 
                 {extraQuery}
             """,
-            new{problemId = request.Problem_Category_Id, 
+            new{problemId = request.problem_Category_Id, 
                 cityId = cityId, 
                 districtId = districtId}
         );
@@ -73,7 +73,7 @@ public class HomePageValidator
 
         //If IsFixed=true, verify if there is at least one IsFixed=false
         //it doesnt make sense to report a problem solved for something that isnt broken in the first place
-        if(request.Is_Fixed == true)
+        if(request.is_Fixed == true)
         {
             requestIntegrityStatus = await results.ReadSingleAsync<bool>();  
             if(requestIntegrityStatus == false)

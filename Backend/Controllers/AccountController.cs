@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -47,6 +48,42 @@ public class AccountController : ControllerBase
 
         return Ok(response);
         //return Created();
+    }
+
+    [HttpPut]
+    [Authorize]
+    [Route("{account_id}")]
+    public async Task<IActionResult> PutEditAccountAsync(PutEditAccountDataRequest request, int account_id)
+    {
+        RequestError? error;
+
+        string? clientIdClaim          = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? null;
+        string? clientAccountTypeClaim = User.FindFirstValue(ClaimTypes.Role)           ?? null;
+        
+        if(clientIdClaim is null ||  clientAccountTypeClaim is null){
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "Invalid token format");
+        }
+
+        int parsedClientId = int.Parse(clientIdClaim);
+
+        if(account_id != parsedClientId){
+            return this.StatusCode(StatusCodes.Status403Forbidden, 
+            "You Cannot Edit Data of another account");
+        }
+
+        (bool isValid, error) = await this._validator.IsValid(request, clientAccountTypeClaim, account_id);
+        if(isValid == false){
+            return this.StatusCode(error!.StatusCode, error.Message);
+        }
+
+        try{
+            _ = await this._accountService.UpdateAccountDataAsync(request, account_id, clientAccountTypeClaim);
+        }
+        catch(Exception){
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "server error");
+        }
+        
+        return NoContent();
     }
 
     [HttpPost]

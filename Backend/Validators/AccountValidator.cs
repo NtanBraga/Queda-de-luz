@@ -283,7 +283,7 @@ public  class AccountValidator
         return (true, null);
     }
 
-    public async Task <(bool, RequestError?)> IsValid(PutEditAccountDataRequest request, string accountTypeFromToken)
+    public async Task <(bool, RequestError?)> IsValid(PutEditAccountDataRequest request, string accountTypeFromToken, int accountId)
     {
         RequestError? error = null;
 
@@ -335,7 +335,7 @@ public  class AccountValidator
             return(false, error);
         }
 
-        var dbContext = await this._connectionFactory.CreateConnectionAsync();
+        using var dbContext = await this._connectionFactory.CreateConnectionAsync();
         SqlMapper.GridReader results = await dbContext.QueryMultipleAsync(
             """
                 SELECT (EXISTS(
@@ -343,18 +343,21 @@ public  class AccountValidator
                 )) AS District_Exists;
 
                 SELECT (NOT EXISTS(
-                    SELECT * FROM Base_Account WHERE Username = @username
+                    SELECT * FROM Base_Account 
+                    WHERE 
+                        Username = @username
+                    AND Base_Account_id != @accountId
                 )) AS Username_available;
             """,
-            new{ districtId = data.districtId, username = data.username}
+            new{ districtId = (int)data.districtId, username = (string)data.username, accountId = accountId}
         );
-        await dbContext.CloseAsync();
         
         bool requestIntegrityStatus = true;
         //Validate District Id Existence
         requestIntegrityStatus = await results.ReadSingleAsync<bool>();
         if(requestIntegrityStatus == false)
         {
+            await dbContext.CloseAsync();
             error = new RequestError(StatusCodes.Status400BadRequest,
             "District does NOT exists");
             return (false, error);
@@ -364,11 +367,13 @@ public  class AccountValidator
         requestIntegrityStatus = await results.ReadSingleAsync<bool>();
         if(requestIntegrityStatus == false)
         {
+            await dbContext.CloseAsync();
             error = new RequestError(StatusCodes.Status400BadRequest,
             "Username Already Taken");
             return (false, error);
         }
       
+        await dbContext.CloseAsync();
         return (requestIntegrityStatus, error);
     }
 }

@@ -40,6 +40,16 @@ GET {{BlackoutMap_HostAddress}}/accounts/2
 Authorization: Bearer accountJWTtokenHere
 Accept: application/json
 
+PUT {{BlackoutMap_HostAddress}}/accounts/2
+Authorization: Bearer accountJWTtokenHere
+Content-Type: application/json
+
+{
+    "person_Data": {"username":"updated", "email":"updated", "description":"updated", "district_id":5320131, "informal_work":"updated"},
+    "business_Data": null
+}
+
+
 POST {{BlackoutMap_HostAddress}}/accounts/3/ads
 Authorization: Bearer accountJWTtokenHere
 Content-Type: application/json

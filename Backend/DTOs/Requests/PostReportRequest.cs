@@ -1,5 +1,5 @@
 public record PostReportRequest(
-    int Problem_Category_Id,
-    bool Is_Fixed = false
+    int problem_Category_Id,
+    bool is_Fixed = false
 );
 
