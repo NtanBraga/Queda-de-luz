@@ -143,7 +143,7 @@ public  class AccountValidator
         bool isValid = true; 
         RequestError? error = null;
 
-        if(request.Username is null || request.Username == string.Empty)
+        if(request.username is null || request.username == string.Empty)
         {
             isValid = false;
             error = new RequestError(
@@ -151,7 +151,7 @@ public  class AccountValidator
                 "invalid username string format");
             return (isValid, error);
         }
-        if(request.Password is null || request.Password == string.Empty)
+        if(request.password is null || request.password == string.Empty)
         {
             isValid = false;
             error = new RequestError(
@@ -281,5 +281,94 @@ public  class AccountValidator
         }
 
         return (true, null);
+    }
+
+    public async Task <(bool, RequestError?)> IsValid(PutEditAccountDataRequest request, string accountTypeFromToken)
+    {
+        RequestError? error = null;
+
+        if(request.business_Data is null && request.person_Data is null){
+            error = new RequestError(
+                StatusCodes.Status400BadRequest,
+                "Invalid Json Schema, Both Person and Business Data are Null"
+            );
+            return(false, error);
+        }
+
+        if(request.business_Data is not null && request.person_Data is not null){
+            error = new RequestError(
+                StatusCodes.Status400BadRequest,
+                "Invalid Json Schema, Both Person and Business Data are Not Null"
+            );
+            return(false, error);
+        }
+
+        var data = (username:(string?)null, districtId:(int?)null , email:(string?)null);
+
+        string requestAccountType = request.person_Data is not null ? nameof(PersonAccount) 
+                                                                    : nameof(BusinessAccount);
+
+        //Check if account is editing using the correct AccountType Schema
+        if(requestAccountType != accountTypeFromToken){
+            error = new RequestError(
+                StatusCodes.Status400BadRequest,
+                "Account type from Json is different than the client account type"
+            );
+            return(false, error);
+        }
+
+        if(requestAccountType == nameof(PersonAccount) ){
+            data.username = request.person_Data!.username;
+            data.districtId = request.person_Data!.district_id;
+            data.email = request.person_Data.email;
+        }else{
+            data.username = request.business_Data!.username;
+            data.districtId = request.business_Data!.district_id;
+            data.email = request.business_Data.email;
+        }
+
+        if(data.email is null){
+            error = new RequestError(
+                StatusCodes.Status400BadRequest,
+                "Email Cannot be null"
+            );
+            return(false, error);
+        }
+
+        var dbContext = await this._connectionFactory.CreateConnectionAsync();
+        SqlMapper.GridReader results = await dbContext.QueryMultipleAsync(
+            """
+                SELECT (EXISTS(
+                    SELECT * FROM District WHERE District_id = @districtId
+                )) AS District_Exists;
+
+                SELECT (NOT EXISTS(
+                    SELECT * FROM Base_Account WHERE Username = @username
+                )) AS Username_available;
+            """,
+            new{ districtId = data.districtId, username = data.username}
+        );
+        await dbContext.CloseAsync();
+        
+        bool requestIntegrityStatus = true;
+        //Validate District Id Existence
+        requestIntegrityStatus = await results.ReadSingleAsync<bool>();
+        if(requestIntegrityStatus == false)
+        {
+            error = new RequestError(StatusCodes.Status400BadRequest,
+            "District does NOT exists");
+            return (false, error);
+        }
+
+        //Verify Username availability
+        requestIntegrityStatus = await results.ReadSingleAsync<bool>();
+        if(requestIntegrityStatus == false)
+        {
+            error = new RequestError(StatusCodes.Status400BadRequest,
+            "Username Already Taken");
+            return (false, error);
+        }
+      
+        return (requestIntegrityStatus, error);
     }
 }
