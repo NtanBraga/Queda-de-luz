@@ -25,7 +25,7 @@ public class AccountService : IAccountService
         string token = string.Empty;
         RequestError? error = null;
 
-        string hashedPassword = this.HashPassword(loginData.Password);
+        string hashedPassword = this.HashPassword(loginData.password);
         using var dbContext = await this._connectionFactory.CreateConnectionAsync();
 
         //<<SQL HERE ! ! ! ! !>>
@@ -48,7 +48,7 @@ public class AccountService : IAccountService
                     WHERE Business_Account_id = ( SELECT user_id FROM user_info LIMIT 1 ) )
                 ) AS is_business_account;
             """,
-            new {Username = loginData.Username, HashedPassword = hashedPassword}
+            new {Username = loginData.username, HashedPassword = hashedPassword}
         );
         
         //verify if it found a Match in the Database
@@ -390,7 +390,66 @@ public class AccountService : IAccountService
         return (result, error);
     }
 
+    public async Task<bool> UpdateAccountDataAsync(PutEditAccountDataRequest request, int accountId, string accountType)
+    {
+        using var dbContext = await this._connectionFactory.CreateConnectionAsync();
 
+        if(accountType == nameof(PersonAccount))
+        {
+            string extraQuery = string.Empty;
+            if(request.person_Data!.informal_work is not null && request.person_Data!.informal_work.Trim() != string.Empty)
+            {
+                extraQuery =
+                    """
+                        UPDATE Base_Account
+                        SET Advertisement_slots_amount = 1
+                        WHERE Base_Account_id = @accountId;
+
+                        UPDATE Person_Account
+                        SET Informal_work = @informalWork
+                        WHERE Person_Account_id = @accountId;
+                    """;
+            }
+
+            await dbContext.ExecuteAsync(
+                $"""
+                    UPDATE Base_Account
+                    SET 
+                        Username    = @username,
+                        Email       = @email,
+                        Description = @description,
+                        District_id = @districtId
+                    WHERE
+                        Base_account_id = @accountId;
+
+                        {extraQuery}
+                """,
+                new{ username = request.person_Data!.username,  email = request.person_Data.email, 
+                    description = request.person_Data.description ?? string.Empty, districtId = request.person_Data.district_id,
+                    accountId = accountId, informalWork = request.person_Data.informal_work }
+            );
+        }else{
+            await dbContext.ExecuteAsync(
+                $"""
+                    UPDATE Base_Account
+                    SET 
+                        Username    = @username,
+                        Email       = @email,
+                        Description = @description,
+                        District_id = @districtId
+                    WHERE
+                        Base_account_id = @accountId;
+                """,
+                new{ username = request.business_Data!.username,  email = request.business_Data.email, 
+                    description = request.business_Data.description ?? string.Empty, districtId = request.business_Data.district_id,
+                    accountId = accountId}
+            );
+        }
+
+        await dbContext.CloseAsync();
+
+        return true;
+    }
 }
 
 public interface IAccountService
@@ -401,6 +460,7 @@ public interface IAccountService
     public Task<(Advertisement?, RequestError?)> PostAdvertisementAsync(PostAdvertisementRequest request, int accountId, string accountType);
     public Task<int> UpdateAdvertisementAsync(PutEditAdvertisementRequest request, int adId);
     public Task<(PostBoostAdvertisementReponse?, RequestError?)> BoostAdvertisementAsync(int ad_id);
+    public Task<bool> UpdateAccountDataAsync(PutEditAccountDataRequest request, int accountId, string accountType);
 
     public string HashPassword(string unhashedPassword);
 }

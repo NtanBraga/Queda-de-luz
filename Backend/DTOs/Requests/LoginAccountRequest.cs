@@ -1,4 +1,4 @@
 public record LoginAccountRequest(
-    string Username,
-    string Password
+    string username,
+    string password
 );
