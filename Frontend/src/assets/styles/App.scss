@@ -412,11 +412,11 @@ body,
   }
 
   .box-power-outage {
-    color: #1a1a1a;
-    background-color: $bg-color-primary;
+    color: white;
+    background-color: rgba(15, 15, 15, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 3px solid #1a1a1a;
+    border: 1px solid (255, 255, 255, 0.1);
     width: 25%;
     height: 90%;
     position: absolute;
@@ -433,18 +433,11 @@ body,
       opacity 0.5s,
       transform 0.5s;
     opacity: 1;
-    box-shadow:
-      0 6px 0px #b39b32,
-      0 10px 25px rgba(0, 0, 0, 0.4);
-
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     &.is-hidden {
       opacity: 0;
       pointer-events: none;
       transform: translateX(-20px);
-    }
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 0px #000;
     }
 
     .box-power-outage-header {
@@ -453,18 +446,18 @@ body,
       justify-content: space-between;
       align-items: center;
       margin-bottom: 25px;
-      border-bottom: 3px solid #1a1a1a;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
       padding-bottom: 15px;
       .button-power-outage-inside {
         background: none;
         border: none;
-        color: #1a1a1a;
+        color: rgba(255, 255, 255, 0.6);
         font-size: 1.5rem;
         font-weight: 900;
         cursor: pointer;
         padding: 0 5px;
         line-height: 1;
-        transition: color 0.2s;
+        transition: color 0.3s;
 
         &:hover {
           color: #ff4d4d;
@@ -488,13 +481,14 @@ body,
       flex-direction: column;
       gap: 15px;
       width: 100%;
+      padding-right: 5px;
 
       .lista-items-bairros-sem-luz {
         text-align: left;
-        background-color: #1a1a1a;
+        background-color: rgba(255, 255, 255, 0.05);
         color: white;
         padding: 18px;
-        border: 2px solid #1a1a1a;
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
         width: 100%;
         transition: all 0.3s ease;
@@ -524,7 +518,7 @@ body,
           border-left: 6px solid $bg-color-primary;
           &::after {
             background-color: $bg-color-primary;
-            box-shadow: 0 0 10px rgba(241, 210, 69, 0.6);
+            box-shadow: 0 0 10px $bg-color-primary;
           }
         }
 
