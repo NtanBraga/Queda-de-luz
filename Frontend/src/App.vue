@@ -11,6 +11,7 @@ import { registrarContaCPF } from './scripts/user/userCPF.ts'
 import { registrarContaCNPJ } from './scripts/user/userCNPJ.ts'
 import type { UserGeneric, UserCPF, UserCNPJ, UserAccount } from './scripts/user/userGeneric.ts'
 import { giveAccountInfo } from './scripts/user/authLogin.ts'
+import { getReports, postReport } from './scripts/user/reports.ts'
 
 //Variaveis de teste
 const city = ref<string>('Porto Alegre')
@@ -80,20 +81,60 @@ const handleReport = async () => {
   )
     return
 
-  if (!neighborhoodsNoPower.value.includes(reportedNeighborhood)) {
-    neighborhoodsNoPower.value.push(reportedNeighborhood)
+  try {
+    const token = localStorage.getItem('userToken')
+    const neighborhoodSearchId = neighborhoodsList.value.find(
+      (n) => n.name === reportedNeighborhood,
+    )
 
-    if (initiateMap.value) {
-      await neighborhoodOutlines(initiateMap.value, neighborhoodsNoPower.value, city.value, false)
+    if (!neighborhoodSearchId) {
+      console.error('Não foi encontrado o bairro na lista.')
+      return
     }
-    console.log(`Reportado o bairro: ${reportedNeighborhood}`)
 
-    latestReportedNeighborhood.value = reportedNeighborhood
-    showAds.value = true
+    await postReport(neighborhoodSearchId.id, token)
 
-    putManualLocation.value = ''
+    if (!neighborhoodsNoPower.value.includes(reportedNeighborhood)) {
+      neighborhoodsNoPower.value.push(reportedNeighborhood)
+
+      if (initiateMap.value) {
+        await neighborhoodOutlines(initiateMap.value, neighborhoodsNoPower.value, city.value, false)
+      }
+      console.log(`Reportado o bairro: ${reportedNeighborhood}`)
+
+      latestReportedNeighborhood.value = reportedNeighborhood
+      showAds.value = true
+
+      putManualLocation.value = ''
+    }
+  } catch (e) {
+    console.error('Falha ao processar reporte: ', e)
+    throw e
   }
 }
+
+const loadReports = async () => {
+  try {
+    const data = await getReports()
+
+    if (data && data.districts_Data) {
+      const reportedNames = Object.values(data.districts_Data).map(
+        (district: any) => district.district_Name,
+      )
+      neighborhoodsNoPower.value = reportedNames
+      if (initiateMap.value) {
+        await neighborhoodOutlines(initiateMap.value, neighborhoodsNoPower.value, city.value, false)
+      }
+      console.log(
+        `Sincronizando com dados de reportes: ${reportedNames.length} bairros reportados em ${city.value}.`,
+      )
+    }
+  } catch (e) {
+    console.error('Erro ao tentar carregar reportes: ', e)
+    throw e
+  }
+}
+
 const selectManual = (name: string) => {
   putManualLocation.value = name
   isChangingReport.value = false
@@ -360,6 +401,8 @@ onMounted(async () => {
     initiateMap.value = await initMap('map-canvas', city.value, neighborhoodsNoPower.value)
 
     console.log(`Mapa de ${city.value} foi carregado com ${names.length} bairros.`)
+
+    await loadReports()
   } catch (error) {
     console.warn('Erro ao realizar carregamento da pagina: ', error)
   }
