@@ -11,7 +11,7 @@ import { registrarContaCPF } from './scripts/user/userCPF.ts'
 import { registrarContaCNPJ } from './scripts/user/userCNPJ.ts'
 import type { UserGeneric, UserCPF, UserCNPJ, UserAccount } from './scripts/user/userGeneric.ts'
 import { giveAccountInfo } from './scripts/user/authLogin.ts'
-import { getReports, postReport } from './scripts/user/reports.ts'
+import { getReports, postReport, resolveReport } from './scripts/user/reports.ts'
 
 //Variaveis de teste
 const city = ref<string>('Porto Alegre')
@@ -94,6 +94,13 @@ const handleReport = async () => {
 
     await postReport(neighborhoodSearchId.id, token)
 
+    if(loggedUser){
+      setTimeout(()=>{
+        if(loggedUser.value && !stillNoPower.value.includes(reportedNeighborhood)) {
+          stillNoPower.value.push(reportedNeighborhood)
+        }
+      },15000)
+    }
     if (!neighborhoodsNoPower.value.includes(reportedNeighborhood)) {
       neighborhoodsNoPower.value.push(reportedNeighborhood)
 
@@ -134,6 +141,55 @@ const loadReports = async () => {
     throw e
   }
 }
+
+const sendResolvedReport = async (districtName: string) => {
+  try{
+    const token = localStorage.getItem('userToken')
+
+    const district = neighborhoodsList.value.find(n => n.name === districtName)
+
+    if(!district){
+      console.warn("Bairro não foi encontrado na lista.")
+      return
+    }
+
+    if(!token) {
+      console.warn("Erro no processamento de usuario")
+      return
+    }
+
+    const districtId = district.id
+
+    await resolveReport(districtId, token)
+
+    stillNoPower.value.splice(currentResolveIndex.value, 1)
+
+    
+    const globalIndex = neighborhoodsNoPower.value.indexOf(districtName)
+    if(globalIndex !== -1){
+      neighborhoodsNoPower.value.splice(globalIndex, 1)
+    }
+
+    if(initiateMap.value){
+      clearAllPolygons()
+
+      await neighborhoodOutlines(initiateMap.value, neighborhoodsNoPower.value, city.value, false)
+    }
+
+    if(currentResolveIndex.value >= stillNoPower.value.length && stillNoPower.value.length > 0){
+      currentResolveIndex.value = stillNoPower.value.length - 1
+    }else if(stillNoPower.value.length === 0){
+      currentResolveIndex.value = 0
+    }
+
+
+    console.log(`Bairro ${districtName} foi marcado como resolvido`)
+  }catch(e) {
+    console.error('Erro ao tentar resolver o reporte requisitado: ', e)
+    throw e
+  }
+}
+
 
 const selectManual = (name: string) => {
   putManualLocation.value = name
@@ -203,6 +259,18 @@ const loggedUser = ref(false)
 const isRegistered = ref(false)
 const razaoSocial = ref('CPF')
 const selectRegisterNeighborhood = ref(false)
+const stillNoPower = ref<string[]>([])
+const currentResolveIndex = ref(0)
+
+const resolveNeighborhoodName = computed(() => {
+  return stillNoPower.value[currentResolveIndex.value]  || ''
+})
+
+const nextResolveNeighborhood = () => {
+  if (stillNoPower.value.length > 1){
+    currentResolveIndex.value = (currentResolveIndex.value + 1) % stillNoPower.value.length
+  }
+}
 
 const loginForm = ref({
   nome: '',
@@ -296,6 +364,7 @@ const handleLogout = () => {
   currentUser.value = null
   localStorage.removeItem('userToken')
   activeTab.value = 'chat'
+  stillNoPower.value = []
 }
 
 watch(
@@ -438,6 +507,16 @@ onUnmounted(() => {
     >
       <img src="./assets/images/chat.svg" />
     </button>
+    <div v-if="loggedUser && stillNoPower.length > 0" class="box-report-resolvecard">
+      <div class="box-report-resolvecard-question">
+        <h2>A luz no bairro <strong>{{ stillNoPower[currentResolveIndex] }}</strong> voltou?</h2>
+        <div class="box-report-resolvecard-actions">
+          <button class="box-report-resolvecard-btc-yes" @click="sendResolvedReport(resolveNeighborhoodName)">SIM, VOLTOU!</button>
+          <button v-if="stillNoPower.length > 1" class="box-report-resolve-card-next" @click="nextResolveNeighborhood">VER OUTRO BAIRRO ({{ currentResolveIndex + 1 }}/{{ stillNoPower.length }})</button>
+          <button class="box-report-resolvecard-btc-no">CONTINUA SEM LUZ</button>
+        </div>
+      </div>
+    </div>
     <Transition name="pop">
       <div v-if="showAds" class="box-ads-tab" @click.self="closeAds">
         <div class="box-ads-card">

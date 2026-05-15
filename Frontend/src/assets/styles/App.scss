@@ -217,6 +217,82 @@ body,
     transform: scale(0.5);
   }
 
+  .box-report-resolvecard {
+    position: fixed;
+    top: 8vh;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    width: 350px;
+    padding: 25px;
+    text-align: center;
+    border: 3px solid #1a1a1a;
+    border-radius: 20px;
+    background-color: $bg-color-primary;
+    z-index: 100;
+    box-shadow: 0 8px 0px #b39b32 0 15px 40px rgba(0, 0, 0, 0.5);
+
+    h2 {
+      color: #1a1a1a;
+      font-weight: 800;
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+    }
+
+    strong{
+      color: red;
+    }
+
+    .box-report-resolvecard-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      button {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.1s;
+        border: 2px solid #1a1a1a;
+      }
+
+      .box-report-resolvecard-btc-yes{
+        background-color: #1a1a1a;
+        color: $bg-color-primary;
+        box-shadow: 0 4px 0px #000;
+
+        &:hover {
+          background: #00ff88;
+          color: #1a1a1a;
+          transform: translateY(-2px);
+        }
+      }
+      .box-report-resolvecard-btc-no{
+        background: none;
+        color: rgba(0,0,0,0.6);
+        border: 2px dashed rgba(0,0,0,0.3);
+
+        &:hover{
+          color: #1a1a1a;
+          border-style: solid;
+          background: rgba(0,0,0,0.05);
+        }
+      }
+      .box-report-resolve-card-next{
+        background: rgba(26,26,26,0.2);
+        color: #1a1a1a;
+        border: 2px solid #1a1a1a;
+        font-size: 0.75rem;
+        margin-bottom: 5px;
+
+        &:hover{
+          background: rgba(26,26,26,0.2);
+        }
+      }
+    }
+  }
+
   .box-report-wrapper {
     position: absolute;
     top: 8vh;
