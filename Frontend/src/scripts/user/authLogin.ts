@@ -34,7 +34,7 @@ const fetchToken = async (credentials: UserLogin) => {
   }
 }
 
-const GetLoginDataByToken = async (token: string) => {
+export const GetLoginDataByToken = async (token: string) => {
   try {
     const response = await fetch(`${API_BANCO_DE_DADOS}/login`, {
       method: 'GET',

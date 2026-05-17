@@ -50,13 +50,13 @@ export const getReports = async () => {
   }
 }
 
-export const resolveReport = async(district_id: number, token: string) => {
-  try{
-    const response = await fetch(`${API_BANCO_DE_DADOS}/districts/${district_id}/reports`,{
-      method: "POST",
+export const resolveReport = async (district_id: number, token: string) => {
+  try {
+    const response = await fetch(`${API_BANCO_DE_DADOS}/districts/${district_id}/reports`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         Is_Fixed: true,
@@ -64,13 +64,13 @@ export const resolveReport = async(district_id: number, token: string) => {
       }),
     })
 
-    if(!response.ok) {
+    if (!response.ok) {
       throw new Error(`Erro ao enviar resolveReport para banco de dados: ${response.status}`)
     }
 
     return await response.json()
-  }catch(e) {
-    console.error("Falha ao enviar requisição de resolveReport: ", e)
+  } catch (e) {
+    console.error('Falha ao enviar requisição de resolveReport: ', e)
     throw e
   }
 }

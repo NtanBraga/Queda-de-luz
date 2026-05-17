@@ -9,7 +9,13 @@ import {
 } from './scripts/maps/neighborhoodMap.ts'
 import { registrarContaCPF } from './scripts/user/userCPF.ts'
 import { registrarContaCNPJ } from './scripts/user/userCNPJ.ts'
-import type { UserGeneric, UserCPF, UserCNPJ, UserAccount } from './scripts/user/userGeneric.ts'
+import {
+  type UserGeneric,
+  type UserCPF,
+  type UserCNPJ,
+  type UserAccount,
+  editProfile,
+} from './scripts/user/userGeneric.ts'
 import { giveAccountInfo } from './scripts/user/authLogin.ts'
 import { getReports, postReport, resolveReport } from './scripts/user/reports.ts'
 
@@ -94,12 +100,12 @@ const handleReport = async () => {
 
     await postReport(neighborhoodSearchId.id, token)
 
-    if(loggedUser){
-      setTimeout(()=>{
-        if(loggedUser.value && !stillNoPower.value.includes(reportedNeighborhood)) {
+    if (loggedUser) {
+      setTimeout(() => {
+        if (loggedUser.value && !stillNoPower.value.includes(reportedNeighborhood)) {
           stillNoPower.value.push(reportedNeighborhood)
         }
-      },15000)
+      }, 15000)
     }
     if (!neighborhoodsNoPower.value.includes(reportedNeighborhood)) {
       neighborhoodsNoPower.value.push(reportedNeighborhood)
@@ -143,18 +149,18 @@ const loadReports = async () => {
 }
 
 const sendResolvedReport = async (districtName: string) => {
-  try{
+  try {
     const token = localStorage.getItem('userToken')
 
-    const district = neighborhoodsList.value.find(n => n.name === districtName)
+    const district = neighborhoodsList.value.find((n) => n.name === districtName)
 
-    if(!district){
-      console.warn("Bairro não foi encontrado na lista.")
+    if (!district) {
+      console.warn('Bairro não foi encontrado na lista.')
       return
     }
 
-    if(!token) {
-      console.warn("Erro no processamento de usuario")
+    if (!token) {
+      console.warn('Erro no processamento de usuario')
       return
     }
 
@@ -164,32 +170,29 @@ const sendResolvedReport = async (districtName: string) => {
 
     stillNoPower.value.splice(currentResolveIndex.value, 1)
 
-    
     const globalIndex = neighborhoodsNoPower.value.indexOf(districtName)
-    if(globalIndex !== -1){
+    if (globalIndex !== -1) {
       neighborhoodsNoPower.value.splice(globalIndex, 1)
     }
 
-    if(initiateMap.value){
+    if (initiateMap.value) {
       clearAllPolygons()
 
       await neighborhoodOutlines(initiateMap.value, neighborhoodsNoPower.value, city.value, false)
     }
 
-    if(currentResolveIndex.value >= stillNoPower.value.length && stillNoPower.value.length > 0){
+    if (currentResolveIndex.value >= stillNoPower.value.length && stillNoPower.value.length > 0) {
       currentResolveIndex.value = stillNoPower.value.length - 1
-    }else if(stillNoPower.value.length === 0){
+    } else if (stillNoPower.value.length === 0) {
       currentResolveIndex.value = 0
     }
 
-
     console.log(`Bairro ${districtName} foi marcado como resolvido`)
-  }catch(e) {
+  } catch (e) {
     console.error('Erro ao tentar resolver o reporte requisitado: ', e)
     throw e
   }
 }
-
 
 const selectManual = (name: string) => {
   putManualLocation.value = name
@@ -263,11 +266,11 @@ const stillNoPower = ref<string[]>([])
 const currentResolveIndex = ref(0)
 
 const resolveNeighborhoodName = computed(() => {
-  return stillNoPower.value[currentResolveIndex.value]  || ''
+  return stillNoPower.value[currentResolveIndex.value] || ''
 })
 
 const nextResolveNeighborhood = () => {
-  if (stillNoPower.value.length > 1){
+  if (stillNoPower.value.length > 1) {
     currentResolveIndex.value = (currentResolveIndex.value + 1) % stillNoPower.value.length
   }
 }
@@ -357,6 +360,93 @@ const handleRegistration = async () => {
   } catch (error) {
     console.error('Falha ao realizar registro:', error)
   }
+}
+
+const isEditing = ref(false)
+const showEditNeighborhoodDropdown = ref(false)
+const editForm = ref({
+  nome: '',
+  bairro_id: 0,
+  bairro_criacao: '',
+  descricao: '',
+  trabalho_informal: false,
+})
+
+const startEditing = () => {
+  if (currentUser.value) {
+    editForm.value = {
+      nome: currentUser.value.nome || '',
+      bairro_id: currentUser.value.bairro_id || 0,
+      bairro_criacao: currentUser.value.bairro_criacao || '',
+      descricao: currentUser.value.descricao || '',
+      trabalho_informal: (currentUser.value as any).trabalho_informal || false,
+    }
+    isEditing.value = true
+  }
+}
+
+const stopEditing = () => {
+  isEditing.value = false
+}
+
+const saveProfile = async () => {
+  try {
+    const token: string = localStorage.getItem('userToken')!
+
+    const updatedUserData = {
+      username: editForm.value.nome,
+      email: currentUser.value?.email || '',
+      description: editForm.value?.descricao || null,
+      district_Id: editForm.value?.bairro_id,
+    }
+
+    let payload = {}
+
+    if (currentUser.value?.accountType === 'PersonAccount') {
+      payload = {
+        person_Data: {
+          ...updatedUserData,
+          informal_Work: editForm.value.trabalho_informal ? 'SIM' : 'NÃO',
+        },
+        business_Data: null,
+      }
+    } else {
+      payload = {
+        person_Data: null,
+        business_Data: updatedUserData,
+      }
+    }
+
+    console.log('Enviando dados de edição:', updatedUserData)
+
+    await editProfile(payload, token)
+
+    if (currentUser.value) {
+      currentUser.value.nome = editForm.value.nome
+      currentUser.value.bairro_id = editForm.value.bairro_id
+      currentUser.value.bairro_criacao = editForm.value.bairro_criacao
+      currentUser.value.descricao = editForm.value.descricao
+      ;(currentUser.value as any).trabalho_informal = editForm.value.trabalho_informal
+    }
+
+    isEditing.value = false
+  } catch (e) {
+    console.error('Erro ao atualizar perfil: ', e)
+    throw e
+  }
+}
+
+const toogleEditDropdown = () => {
+  showEditNeighborhoodDropdown.value = !showEditNeighborhoodDropdown.value
+}
+
+const closeEditDropdown = () => {
+  showEditNeighborhoodDropdown.value = false
+}
+const selectingEditNeighborhood = (neighborhoodName: NeighborhoodInfo) => {
+  editForm.value.bairro_criacao = neighborhoodName.name
+  editForm.value.bairro_id = neighborhoodName.id
+  showEditNeighborhoodDropdown.value = false
 }
 
 const handleLogout = () => {
@@ -509,10 +599,23 @@ onUnmounted(() => {
     </button>
     <div v-if="loggedUser && stillNoPower.length > 0" class="box-report-resolvecard">
       <div class="box-report-resolvecard-question">
-        <h2>A luz no bairro <strong>{{ stillNoPower[currentResolveIndex] }}</strong> voltou?</h2>
+        <h2>
+          A luz no bairro <strong>{{ stillNoPower[currentResolveIndex] }}</strong> voltou?
+        </h2>
         <div class="box-report-resolvecard-actions">
-          <button class="box-report-resolvecard-btc-yes" @click="sendResolvedReport(resolveNeighborhoodName)">SIM, VOLTOU!</button>
-          <button v-if="stillNoPower.length > 1" class="box-report-resolve-card-next" @click="nextResolveNeighborhood">VER OUTRO BAIRRO ({{ currentResolveIndex + 1 }}/{{ stillNoPower.length }})</button>
+          <button
+            class="box-report-resolvecard-btc-yes"
+            @click="sendResolvedReport(resolveNeighborhoodName)"
+          >
+            SIM, VOLTOU!
+          </button>
+          <button
+            v-if="stillNoPower.length > 1"
+            class="box-report-resolve-card-next"
+            @click="nextResolveNeighborhood"
+          >
+            VER OUTRO BAIRRO ({{ currentResolveIndex + 1 }}/{{ stillNoPower.length }})
+          </button>
           <button class="box-report-resolvecard-btc-no">CONTINUA SEM LUZ</button>
         </div>
       </div>
@@ -805,80 +908,126 @@ onUnmounted(() => {
                 </div>
               </Transition>
             </div>
-            <div v-else class="box-chat-profile-table-container">
-              <div
-                v-if="currentUser?.accountType === 'PersonAccount'"
-                class="box-chat-profile-cpf-container"
-              >
-                <table class="box-chat-profile-table">
-                  <thead>
-                    <tr>
-                      <th colspan="2">Dados do usuário</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Nome:</td>
-                      <td>{{ currentUser.nome }}</td>
-                    </tr>
-                    <tr>
-                      <td>Localização:</td>
-                      <td>{{ currentUser?.bairro_criacao }}</td>
-                    </tr>
-                    <tr>
-                      <td>Status:</td>
-                      <td><span class="status-online">Online</span></td>
-                    </tr>
-                    <tr>
-                      <td>Notificações:</td>
-                      <td>Ativadas</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div v-else class="box-chat-profile-cnpj-container">
-                <table class="box-chat-profile-table">
-                  <thead>
-                    <tr>
-                      <th colspan="2">Dados do empresa</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Nome:</td>
-                      <td>{{ currentUser?.nome }}</td>
-                    </tr>
-                    <tr>
-                      <td>Localização:</td>
-                      <td>{{ currentUser?.bairro_criacao }}</td>
-                    </tr>
-                    <tr>
-                      <td>Status:</td>
-                      <td><span class="status-online">Online</span></td>
-                    </tr>
-                    <tr>
-                      <td>Notificações:</td>
-                      <td>Ativadas</td>
-                    </tr>
-                    <tr>
-                      <td>Anúncios:</td>
-                      <td>{{ currentUser?.slot_anuncio_quantidade }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div class="box-chat-profile-cnpj-anuncios">
-                  <p class="box-chat-profile-cnpj-anuncios-label">Produtos anunciados:</p>
-                  <div class="box-chat-profile-cnpj-anuncios-album">
+            <div
+              v-else
+              class="box-chat-profile-table-container"
+              :class="{ 'is-editing-mode': isEditing }"
+            >
+              <template v-if="!isEditing">
+                <div class="box-chat-profile-header">
+                  <div class="box-chat-profile-avatar">
+                    <img
+                      v-if="currentUser?.imagem_perfil_link"
+                      :src="currentUser.imagem_perfil_link"
+                    />
+                    <div v-else class="box-chat-profile-avatar-placeholder"></div>
+                  </div>
+                  <div class="box-chat-profile-info">
+                    <h4 class="box-chat-profile-name">{{ currentUser?.nome }}</h4>
+                    <p class="box-chat-profile-neighborhood">{{ currentUser?.bairro_criacao }}</p>
+                  </div>
+                </div>
+                <div class="box-chat-profile-bio">
+                  <p class="box-chat-profile-bio-title">Descrição</p>
+                  <p class="box-chat-profile-bio-text">
+                    {{ currentUser?.descricao || 'Ainda sem nenhuma descrição.' }}
+                  </p>
+                </div>
+                <div
+                  v-if="currentUser?.accountType === 'BusinessAccount'"
+                  class="box-chat-profile-cnpj-ads"
+                >
+                  <p class="box-chat-profile-cnpj-ads-label">
+                    Produtos anunciados (Disponiveis: {{ currentUser?.slot_anuncio_quantidade }})
+                  </p>
+                  <div class="box-chat-profile-cnpj-ads-album">
                     <div v-for="i in 3" :key="i" class="box-chat-profile-cnpj-slots">
                       <span>Placeholder</span>
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <button class="box-chat-viewprofile-logoutbutton" @click="handleLogout">
-                Sair da conta
-              </button>
+                <div class="box-chat-profile-buttons-container">
+                  <button class="box-chat-profile-editbutton" @click="startEditing">
+                    Editar conta
+                  </button>
+                  <button class="box-chat-profile-logoutbutton" @click="handleLogout">
+                    Sair da conta
+                  </button>
+                </div>
+              </template>
+              <template v-else>
+                <h3 class="box-chat-profile-edit-title">Editar perfil</h3>
+                <div class="box-chat-profile-edit-fields">
+                  <label>Seu nome / Razão social</label>
+                  <input
+                    v-model="editForm.nome"
+                    type="text"
+                    placeholder="Digite seu nome/razão social..."
+                  />
+                </div>
+                <div class="box-chat-profile-edit-fields">
+                  <label>Bairro de Atuação</label>
+                  <div class="box-chat-profile-edit-neighborhood" @click="toogleEditDropdown">
+                    <input
+                      v-model="editForm.bairro_criacao"
+                      type="text"
+                      placeholder="Seu Bairro"
+                      readonly
+                      tabindex="0"
+                      @blur="closeEditDropdown"
+                      @keydown.enter.prevent="toogleEditDropdown"
+                      @keydown.space.prevent="toogleEditDropdown"
+                    />
+                    <ul
+                      v-if="showEditNeighborhoodDropdown && neighborhoodsList.length"
+                      class="box-chat-profile-edit-dropdown"
+                    >
+                      <li
+                        v-for="n in neighborhoodsList"
+                        :key="n.id"
+                        tabindex="0"
+                        @mousedown.prevent="selectingEditNeighborhood(n)"
+                        @keydown.enter.prevent="selectingEditNeighborhood(n)"
+                      >
+                        {{ n.name }}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="box-chat-profile-edit-fields">
+                  <label>Trabalha de forma informal?</label>
+                  <div class="box-chat-profile-edit-toogle-group">
+                    <button
+                      :class="{ active: editForm.trabalho_informal === true }"
+                      @click="editForm.trabalho_informal = true"
+                    >
+                      SIM
+                    </button>
+                    <button
+                      :class="{ active: editForm.trabalho_informal === false }"
+                      @click="editForm.trabalho_informal = false"
+                    >
+                      NÃO
+                    </button>
+                  </div>
+                </div>
+                <div class="box-chat-profile-edit-fields">
+                  <label>Descrição</label>
+                  <textarea
+                    v-model="editForm.descricao"
+                    rows="3"
+                    placeholder="Insira a sua descrição..."
+                  ></textarea>
+                </div>
+                <div class="box-chat-profile-buttons-container">
+                  <button class="box-chat-profile-edit-btn-save" @click="saveProfile">
+                    Salvar
+                  </button>
+                  <button class="box-chat-profile-edit-btn-cancel" @click="stopEditing">
+                    Cancelar
+                  </button>
+                </div>
+              </template>
             </div>
           </div>
           <div v-else-if="activeTab === 'online'" key="online" class="box-chat-viewonline">

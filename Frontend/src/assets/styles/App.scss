@@ -238,7 +238,7 @@ body,
       margin-bottom: 10px;
     }
 
-    strong{
+    strong {
       color: red;
     }
 
@@ -257,7 +257,7 @@ body,
         border: 2px solid #1a1a1a;
       }
 
-      .box-report-resolvecard-btc-yes{
+      .box-report-resolvecard-btc-yes {
         background-color: #1a1a1a;
         color: $bg-color-primary;
         box-shadow: 0 4px 0px #000;
@@ -268,26 +268,26 @@ body,
           transform: translateY(-2px);
         }
       }
-      .box-report-resolvecard-btc-no{
+      .box-report-resolvecard-btc-no {
         background: none;
-        color: rgba(0,0,0,0.6);
-        border: 2px dashed rgba(0,0,0,0.3);
+        color: rgba(0, 0, 0, 0.6);
+        border: 2px dashed rgba(0, 0, 0, 0.3);
 
-        &:hover{
+        &:hover {
           color: #1a1a1a;
           border-style: solid;
-          background: rgba(0,0,0,0.05);
+          background: rgba(0, 0, 0, 0.05);
         }
       }
-      .box-report-resolve-card-next{
-        background: rgba(26,26,26,0.2);
+      .box-report-resolve-card-next {
+        background: rgba(26, 26, 26, 0.2);
         color: #1a1a1a;
         border: 2px solid #1a1a1a;
         font-size: 0.75rem;
         margin-bottom: 5px;
 
-        &:hover{
-          background: rgba(26,26,26,0.2);
+        &:hover {
+          background: rgba(26, 26, 26, 0.2);
         }
       }
     }
@@ -1015,80 +1015,287 @@ body,
           flex: 1;
           gap: 15px;
           flex-shrink: 0;
-          .box-chat-profile-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px !important;
-            background-color: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            overflow: hidden;
 
-            th {
-              padding: 15px;
-              background: rgba(255, 255, 255, 0.1);
-              text-align: left;
-              color: rgb(241, 210, 69);
+          .box-chat-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            .box-chat-profile-avatar {
+              width: 55px;
+              height: 55px;
+              border-radius: 50%;
+              overflow: hidden;
+              border: 2px solid $bg-color-primary;
+              background: linear-gradient(45deg, #333, #666);
+              @include display-on-center();
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              }
+              .box-chat-profile-avatar-placeholder {
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.1);
+              }
             }
-            td {
-              padding: 12px 15px;
-              border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-              font-size: 0.9rem;
-              &:first-child {
-                color: #888;
-                width: 40%;
+            .box-chat-profile-info {
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+              .box-chat-profile-name {
+                font-size: 1rem;
+                font-weight: 700;
+                color: white;
+                letter-spacing: 0.5px;
+              }
+              .box-chat-profile-neighborhood {
+                font-size: 0.8rem;
+                color: #9ca5b3;
+                font-style: italic;
               }
             }
           }
-          .box-chat-viewprofile-logoutbutton {
-            margin-top: auto;
-            width: 100%;
-            background: none;
-            border: 1px solid rgba(255, 0, 0, 0.3);
-            color: red;
-            padding: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            &:hover {
-              background: rgba(255, 0, 0, 0.1);
+          .box-chat-profile-bio {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            .box-chat-profile-bio-title {
+              font-size: 0.7rem;
+              color: $bg-color-primary;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            }
+            .box-chat-profile-bio-text {
+              font-size: 0.85rem;
+              color: #ddd;
+              line-height: 1.4;
             }
           }
-          .box-chat-profile-cnpj-container {
-            .box-chat-profile-cnpj-anuncios {
-              margin-top: 15px;
-              padding: 10px;
-              background: rgba(255, 255, 255, 0.03);
-              border-radius: 12px;
-              flex-shrink: 0;
-            }
-            .box-chat-profile-cnpj-anuncios-label {
+
+          .box-chat-profile-cnpj-ads {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            flex-shrink: 0;
+
+            .box-chat-profile-cnpj-ads-label {
               font-size: 0.75rem;
               color: #9ca5b3;
               margin-bottom: 10px;
               font-weight: bold;
               text-transform: uppercase;
+
+              .box-chat-profile-cnpj-ads-album {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+
+                .box-chat-profile-cnpj-slots {
+                  aspect-ratio: 1 / 1;
+                  background: rgba(255, 255, 255, 0.05);
+                  border: 1px dashed rgba(241, 210, 69, 0.3);
+                  border-radius: 8px;
+                  @include display-on-center();
+
+                  span {
+                    font-size: 0.6rem;
+                    color: #666;
+                    text-align: center;
+                  }
+                  &:hover {
+                    background-color: rgba(241, 210, 69, 0.05);
+                    border-color: rgb(241, 210, 69);
+                    cursor: pointer;
+                  }
+                }
+              }
             }
-            .box-chat-profile-cnpj-anuncios-album {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
+          }
+          .box-chat-profile-buttons-container {
+            display: flex;
+            flex-direction: row;
+            margin-top: auto;
+            gap: 12px;
+            .box-chat-profile-editbutton {
+              flex: 1;
+              margin-top: auto;
+              min-height: 50px;
+              width: 100%;
+              background: none;
+              border: 1px solid rgba(255, 252, 67, 0.3);
+              color: yellow;
+              padding: 8px;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: bold;
+              transition: all 0.2s;
+              &:hover {
+                background: rgba(241, 210, 69, 0.1);
+                border-color: $bg-color-primary;
+              }
+            }
+            .box-chat-profile-logoutbutton {
+              flex: 1;
+              margin-top: auto;
+              width: 100%;
+              min-height: 50px;
+              background: none;
+              border: 1px solid rgba(255, 0, 0, 0.3);
+              color: red;
+              padding: 8px;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: bold;
+              transition: all 0.2s;
+              &:hover {
+                background: rgba(255, 0, 0, 0.1);
+                border-color: #ff4d4d;
+              }
+            }
+          }
+          .box-chat-profile-edit-title {
+            color: $bg-color-primary;
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+          }
+          .box-chat-profile-edit-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            label {
+              font-size: 0.7rem;
+              color: #9ca5b3;
+              font-weight: bold;
+              text-transform: uppercase;
+            }
+            input,
+            textarea {
+              background: rgba(255, 255, 255, 0.06);
+              border: 1px solid rgba(255, 255, 255, 0.15);
+              border-radius: 8px;
+              padding: 10px;
+              color: white;
+              font-family: inherit;
+              font-size: 0.85rem;
+              transition: all 0.2s ease;
+
+              &:focus {
+                outline: none;
+                border-color: $bg-color-primary;
+                box-shadow: 0 0 8px rgba(241, 210, 69, 0.2);
+              }
+            }
+            textarea {
+              resize: none;
+            }
+            .box-chat-profile-edit-toogle-group {
+              display: flex;
               gap: 10px;
+              button {
+                flex: 1;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: #888;
+                padding: 8px;
+                border-radius: 6px;
+                font-size: 0.8rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.2s ease;
 
-              .box-chat-profile-cnpj-slots {
-                aspect-ratio: 1 / 1;
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px dashed rgba(241, 210, 69, 0.3);
-                border-radius: 8px;
-                @include display-on-center();
+                &.active {
+                  background: rgba(241, 210, 69, 0.15);
+                  border-color: $bg-color-primary;
+                  box-shadow: 0 0 18px rgba(241, 210, 69, 0.1);
+                }
+              }
+            }
+          }
 
-                span {
-                  font-size: 0.6rem;
-                  color: #666;
-                  text-align: center;
+          .box-chat-profile-edit-neighborhood {
+            position: relative;
+            width: 100%;
+            input {
+              width: 100%;
+              cursor: pointer;
+            }
+            .box-chat-profile-edit-dropdown {
+              position: absolute;
+              top: 100%;
+              left: 0;
+              width: 100%;
+              max-height: 150px;
+              overflow-y: auto;
+              background: #1a221a;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 0 0 8px 8px;
+              z-index: 50;
+              list-style: none;
+              padding: 0;
+              box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+              li {
+                padding: 10px;
+                font-size: 0.8rem;
+                color: white;
+                cursor: pointer;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                outline: none;
+                text-align: left;
+
+                &:hover,
+                &:focus {
+                  background: $bg-color-primary;
+                  color: #1a1a1a;
+                  font-weight: 700;
+                  box-shadow: 4px 0 0 #1a1a1a;
                 }
-                &:hover {
-                  background-color: rgba(241, 210, 69, 0.05);
-                  border-color: rgb(241, 210, 69);
-                  cursor: pointer;
-                }
+              }
+              &::-webkit-scrollbar {
+                width: 4px;
+              }
+              &::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+              }
+            }
+          }
+
+          .box-chat-profile-buttons-container {
+            display: flex;
+            gap: 10px;
+            .box-chat-profile-edit-btn-save {
+              flex: 1;
+              padding: 8px;
+              border-radius: 6px;
+              transition: all 0.2s ease;
+              border: 1px solid rgba(0, 255, 136, 0.3) !important;
+              color: #00ff88 !important;
+              &:hover {
+                background: rgba(0, 255, 136, 0.1) !important;
+              }
+            }
+            .box-chat-profile-edit-btn-cancel {
+              flex: 1;
+              padding: 8px;
+              border-radius: 6px;
+              transition: all 0.2s ease;
+              border: 1px solid rgba(255, 255, 255, 0.2) !important;
+              color: #aaa !important;
+              &:hover {
+                background: rgba(255, 255, 255, 0.05) !important;
+                color: white !important;
               }
             }
           }

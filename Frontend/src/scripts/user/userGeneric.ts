@@ -1,3 +1,5 @@
+import { GetLoginDataByToken } from './authLogin'
+
 export interface UserGeneric {
   nome: string
   telefone: string
@@ -24,3 +26,29 @@ export interface UserCNPJ extends UserGeneric {
 export type UserAccount = UserCPF | UserCNPJ
 
 export type UserLogin = Pick<UserGeneric, 'nome' | 'senha'>
+
+export const editProfile = async (userData: any, token: string) => {
+  const API_BANCO_DE_DADOS = `http://localhost:5176/accounts`
+
+  const token_id = await GetLoginDataByToken(token)
+
+  const response = await fetch(`${API_BANCO_DE_DADOS}/${token_id.account_Id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(userData),
+  })
+  if (!response.ok) {
+    throw new Error(`Falha ao atualizar informações no servidor: ${response.status}`)
+  }
+
+  const responseText = await response.text()
+
+  const data = responseText ? JSON.parse(responseText) : { updated: true }
+
+  console.log('Dados de edição enviados para o banco de dados:', data)
+
+  return data
+}
