@@ -621,6 +621,15 @@ body,
     position: absolute;
     z-index: 1;
     @include display-on-center;
+
+    .box-map-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #666;
+      font-size: 1.1rem;
+    }
   }
   .button-chat-outside {
     position: absolute;
@@ -730,6 +739,13 @@ body,
           background: linear-gradient(45deg, #444, #888);
           border-radius: 50%;
           border: 1px solid rgba(255, 255, 255, 0.3);
+          @include display-on-center();
+
+          img {
+            width: 50%;
+            height: 50%;
+            object-fit: contain;
+          }
         }
         .box-chat-toggle-profile-online {
           display: flex;
@@ -1084,7 +1100,7 @@ body,
 
           .box-chat-profile-cnpj-ads {
             margin-top: 15px;
-            padding: 10px;
+            padding: 20px;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
             flex-shrink: 0;
@@ -1095,29 +1111,28 @@ body,
               margin-bottom: 10px;
               font-weight: bold;
               text-transform: uppercase;
+            }
+            .box-chat-profile-cnpj-ads-album {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 10px;
 
-              .box-chat-profile-cnpj-ads-album {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
+              .box-chat-profile-cnpj-slots {
+                aspect-ratio: 1 / 1;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px dashed rgba(241, 210, 69, 0.3);
+                border-radius: 8px;
+                @include display-on-center();
 
-                .box-chat-profile-cnpj-slots {
-                  aspect-ratio: 1 / 1;
-                  background: rgba(255, 255, 255, 0.05);
-                  border: 1px dashed rgba(241, 210, 69, 0.3);
-                  border-radius: 8px;
-                  @include display-on-center();
-
-                  span {
-                    font-size: 0.6rem;
-                    color: #666;
-                    text-align: center;
-                  }
-                  &:hover {
-                    background-color: rgba(241, 210, 69, 0.05);
-                    border-color: rgb(241, 210, 69);
-                    cursor: pointer;
-                  }
+                span {
+                  font-size: 0.6rem;
+                  color: #666;
+                  text-align: center;
+                }
+                &:hover {
+                  background-color: rgba(241, 210, 69, 0.05);
+                  border-color: rgb(241, 210, 69);
+                  cursor: pointer;
                 }
               }
             }
@@ -1410,6 +1425,7 @@ body,
           gap: 10px;
           padding: 10px 15px;
           input {
+            font-family: inherit;
             flex-grow: 1;
             background: rgba(255, 255, 255, 0.1);
             border: none;
