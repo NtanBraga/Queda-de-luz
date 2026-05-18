@@ -6,6 +6,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
+// @ts-ignore
 export default defineConfig(({mode}) =>{
   const env = loadEnv(mode, process.cwd());
   
