@@ -5,7 +5,6 @@ import { powerOutageStore } from '@/stores/powerOutage'
 const powerStore = powerOutageStore()
 
 const openMenu = defineModel<boolean>('openMenu', { default: true })
-
 </script>
 
 <template>

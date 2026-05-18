@@ -104,7 +104,6 @@ const allIsValidRegister = computed(() => {
 
 const handleLogin = async () => {
   try {
-
     console.log(
       `dados de loginForm: Nome -> ${loginForm.value.nome}| Senha -> ${loginForm.value.senha}`,
     )
@@ -405,7 +404,7 @@ watch(
           <div class="box-chat-profile-avatar">
             <img v-if="currentUser?.imagem_perfil_link" :src="currentUser.imagem_perfil_link" />
             <div v-else class="box-chat-profile-avatar-placeholder">
-              <img src="../../assets/images/no-photo.svg"/>
+              <img src="../../assets/images/no-photo.svg" />
             </div>
           </div>
           <div class="box-chat-profile-info">

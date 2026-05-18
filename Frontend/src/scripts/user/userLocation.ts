@@ -33,10 +33,17 @@ export const fetchAllLocation = async (lat: number, lng: number) => {
 
     const locationData: UserLocation = {
       city: data.address.city || data.address.town || data.address.village || '',
-      neighborhood: data.address.suburb || data.address.neighborhood || data.address.quarter || data.address.city_district || '',
+      neighborhood:
+        data.address.suburb ||
+        data.address.neighborhood ||
+        data.address.quarter ||
+        data.address.city_district ||
+        '',
     }
 
-    if(locationData.city || locationData.neighborhood){cacheManager.set(cacheLocation, locationData, 2)}
+    if (locationData.city || locationData.neighborhood) {
+      cacheManager.set(cacheLocation, locationData, 2)
+    }
 
     return locationData
   } catch (e) {

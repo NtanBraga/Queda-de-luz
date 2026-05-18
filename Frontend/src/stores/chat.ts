@@ -2,8 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authAccountStore } from './auth'
 
-
-
 export const chatFuncStore = defineStore('chat', () => {
   const authStore = authAccountStore()
   const activeTab = ref<'chat' | 'profile' | 'online'>('chat')
@@ -14,9 +12,11 @@ export const chatFuncStore = defineStore('chat', () => {
       { name: 'Visitante_Alpha', location: 'Bela Vista' },
       { name: 'Visitante_Beta', location: 'Centro Histórico' },
     ]
-    if(authStore.currentUser?.nome)
-    { 
-      list.push({name: authStore.currentUser?.nome, location: authStore.currentUser?.bairro_criacao})
+    if (authStore.currentUser?.nome) {
+      list.push({
+        name: authStore.currentUser?.nome,
+        location: authStore.currentUser?.bairro_criacao,
+      })
     }
     return list
   })

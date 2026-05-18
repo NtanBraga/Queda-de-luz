@@ -68,10 +68,10 @@ onMounted(async () => {
       @report-added="handleReportAdded"
     />
 
-    <PowerOutageList v-model:open-menu="openMenu"/>
+    <PowerOutageList v-model:open-menu="openMenu" />
 
     <MapContainer />
 
-    <ChatPanel v-model:open-chat="openChat" :open-menu="openMenu"/>
+    <ChatPanel v-model:open-chat="openChat" :open-menu="openMenu" />
   </div>
 </template>

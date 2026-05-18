@@ -11,12 +11,12 @@ export const powerOutageStore = defineStore('powerOutage', () => {
       neighborhoodsNoPower.value.push(neighborhood)
     }
     if (!stillNoPower.value.includes(neighborhood)) {
-      setTimeout(()=>{
+      setTimeout(() => {
         stillNoPower.value.push(neighborhood)
         if (stillNoPower.value.length === 1) {
           currentResolveIndex.value = 0
         }
-      },10000)
+      }, 10000)
     }
   }
 

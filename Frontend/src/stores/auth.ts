@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { UserAccount, UserLogin } from '@/scripts/user/userGeneric'
-import {  giveAccountInfo, restoreByToken } from '@/scripts/user/authLogin'
+import { giveAccountInfo, restoreByToken } from '@/scripts/user/authLogin'
 
 export const authAccountStore = defineStore('auth', () => {
   const currentUser = ref<UserAccount | null>(null)
@@ -33,22 +33,22 @@ export const authAccountStore = defineStore('auth', () => {
     localStorage.removeItem('userToken')
   }
 
-  const restoreSession = async() => {
+  const restoreSession = async () => {
     const token = localStorage.getItem('userToken')
-    if(!token) return false
+    if (!token) return false
 
     isLoading.value = true
 
-    try{
-      const {account} = await restoreByToken(token)
+    try {
+      const { account } = await restoreByToken(token)
 
       currentUser.value = account
       isLoggedIn.value = true
 
-      console.log("Sessão restaurada com sucesso.")
+      console.log('Sessão restaurada com sucesso.')
       return true
-    }catch(e){
-      console.error("Erro ao restaurar conta: ", e)
+    } catch (e) {
+      console.error('Erro ao restaurar conta: ', e)
       localStorage.removeItem('userToken')
       throw e
     }

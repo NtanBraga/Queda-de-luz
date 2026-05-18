@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  users: Array<{ name: string; location: string; }>
+  users: Array<{ name: string; location: string }>
 }>()
 </script>
 

@@ -3,7 +3,7 @@ import { type UserAccount, type UserCNPJ, type UserCPF, type UserLogin } from '.
 const API_BANCO_DE_DADOS = 'http://localhost:5176/accounts'
 
 const fetchToken = async (credentials: UserLogin) => {
-  console.log("payload:", credentials)
+  console.log('payload:', credentials)
   const payload = {
     Username: credentials.nome,
     Password: credentials.senha,
@@ -123,8 +123,8 @@ export const giveAccountInfo = async (credentials: UserLogin) => {
   }
 }
 
-export const restoreByToken = async(token: string) => {
-  try{
+export const restoreByToken = async (token: string) => {
+  try {
     const tokenData = await GetLoginDataByToken(token)
 
     const response = await fetch(`${API_BANCO_DE_DADOS}/${tokenData.account_Id}`, {
@@ -145,7 +145,7 @@ export const restoreByToken = async(token: string) => {
     const data = await response.json()
 
     let account: UserAccount
-    if(data.business_Account_Data == null){
+    if (data.business_Account_Data == null) {
       const personData = data.person_Account_Data.public_Data
       account = {
         nome: personData.username,
@@ -158,7 +158,7 @@ export const restoreByToken = async(token: string) => {
         bairro_id: personData.district_Id,
         accountType: 'PersonAccount' as const,
       } as UserCPF
-    }else{
+    } else {
       const businessPublicData = data.business_Account_Data.public_Data
       const businessPrivateData = data.business_Account_Data.private_Data
       account = {
@@ -174,9 +174,9 @@ export const restoreByToken = async(token: string) => {
       } as UserCNPJ
     }
 
-    return {account}
-  }catch(e){
-    console.error("Erro ao tentar pegar dados da conta por token: ", e)
+    return { account }
+  } catch (e) {
+    console.error('Erro ao tentar pegar dados da conta por token: ', e)
     throw e
   }
 }

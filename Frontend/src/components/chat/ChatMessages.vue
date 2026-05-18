@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { chatFuncStore } from '@/stores/chat';
-import ChatInput from './ChatInput.vue';
+import { chatFuncStore } from '@/stores/chat'
+import ChatInput from './ChatInput.vue'
 
 defineProps<{
   messages: Array<{ user: string; text: string }>
 }>()
 
 const chatStore = chatFuncStore()
-
 </script>
 
 <template>
@@ -17,8 +16,6 @@ const chatStore = chatFuncStore()
         <strong>{{ msg.user }}: </strong>{{ msg.text }}
       </div>
     </div>
-    <ChatInput 
-      v-model="chatStore.newMessage"
-      @send="chatStore.sendMessages"/>
+    <ChatInput v-model="chatStore.newMessage" @send="chatStore.sendMessages" />
   </div>
 </template>

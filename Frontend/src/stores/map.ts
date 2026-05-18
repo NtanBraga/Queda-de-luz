@@ -14,5 +14,13 @@ export const mapBuildStore = defineStore('map', () => {
     selectedNeighborhood.value = name
   }
 
-  return { city, neighborhoodsList, initiateMap, detectLocation, isSearching, selectedNeighborhood, setSelectedNeighborhood }
+  return {
+    city,
+    neighborhoodsList,
+    initiateMap,
+    detectLocation,
+    isSearching,
+    selectedNeighborhood,
+    setSelectedNeighborhood,
+  }
 })

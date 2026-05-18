@@ -3,12 +3,10 @@ import { ref, computed, watch } from 'vue'
 import { powerOutageStore } from '@/stores/powerOutage'
 import { mapBuildStore } from '@/stores/map'
 import { postReport } from '@/scripts/user/reports'
-import { type NeighborhoodInfo, neighborhoodOutlines } from '@/scripts/maps/neighborhoodMap'
-import { authAccountStore } from '@/stores/auth'
+import { type NeighborhoodInfo } from '@/scripts/maps/neighborhoodMap'
 
 const powerStore = powerOutageStore()
 const mapStore = mapBuildStore()
-const authStore = authAccountStore()
 
 const props = defineProps<{
   neighborhoodList: NeighborhoodInfo[]
@@ -29,16 +27,22 @@ const filteredNeighborhoods = computed(() =>
   ),
 )
 
-watch(() => mapStore.selectedNeighborhood, (newVal) => {
-  if(newVal) putManualLocation.value = ''
-})
-
-const displayNeighborhood = computed(
-  () => {
-    if(mapStore.isSearching) return "Buscando..."
-    return putManualLocation.value || mapStore.selectedNeighborhood || mapStore.detectLocation || 'Detectando...'
-  }
+watch(
+  () => mapStore.selectedNeighborhood,
+  (newVal) => {
+    if (newVal) putManualLocation.value = ''
+  },
 )
+
+const displayNeighborhood = computed(() => {
+  if (mapStore.isSearching) return 'Buscando...'
+  return (
+    putManualLocation.value ||
+    mapStore.selectedNeighborhood ||
+    mapStore.detectLocation ||
+    'Detectando...'
+  )
+})
 
 const selectManual = (name: string) => {
   putManualLocation.value = name
@@ -71,14 +75,12 @@ const handleReport = async () => {
     await postReport(neighborhoodSearchId.id, token)
     powerStore.doReport(reportedNeighborhood)
 
-
     console.log(`Reportado o bairro: ${reportedNeighborhood}`)
 
     emit('reportAdded', reportedNeighborhood)
 
-      putManualLocation.value = ''
-      mapStore.setSelectedNeighborhood('')
-    
+    putManualLocation.value = ''
+    mapStore.setSelectedNeighborhood('')
   } catch (e) {
     console.error('Falha ao processar reporte: ', e)
     throw e
@@ -99,7 +101,9 @@ const cancelChange = () => {
         <h3 class="box-report-neighborhood">{{ displayNeighborhood }}</h3>
         <button
           class="box-report-btn-main"
-          :disabled="['Fora de area.', 'Detectando...', 'Buscando...'].includes(displayNeighborhood)"
+          :disabled="
+            ['Fora de area.', 'Detectando...', 'Buscando...'].includes(displayNeighborhood)
+          "
           @click="handleReport"
         >
           LOCAL SEM LUZ

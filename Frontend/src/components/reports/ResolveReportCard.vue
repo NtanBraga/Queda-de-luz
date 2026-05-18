@@ -4,12 +4,15 @@ import { authAccountStore } from '@/stores/auth'
 import { mapBuildStore } from '@/stores/map'
 import { resolveReport } from '@/scripts/user/reports'
 import { storeToRefs } from 'pinia'
+import { ref, watch } from 'vue'
 
 const powerStore = powerOutageStore()
 const authStore = authAccountStore()
 const mapStore = mapBuildStore()
 
 const { resolveNeighborhoodName } = storeToRefs(powerStore)
+
+const isDismissed = ref(false)
 
 const handleResolve = async () => {
   try {
@@ -20,7 +23,6 @@ const handleResolve = async () => {
 
     const districtId = mapStore.neighborhoodsList.find((n) => n.name === districtName)!
 
-    
     await resolveReport(districtId.id, getToken)
 
     powerStore.fixIndexResolve(districtName)
@@ -31,15 +33,28 @@ const handleResolve = async () => {
   }
 }
 
+const handleStillNoPower = () => {
+  isDismissed.value = true
+}
+
 const handleNext = () => {
   powerStore.nextResolve()
 }
+
+watch(
+  () => powerStore.stillNoPower.length,
+  (newLength) => {
+    if (newLength > 0) {
+      isDismissed.value = false
+    }
+  },
+)
 </script>
 
 <template>
   <Transition name="pop">
     <div
-      v-if="authStore.isLoggedIn && powerStore.stillNoPower.length > 0"
+      v-if="authStore.isLoggedIn && powerStore.stillNoPower.length > 0 && !isDismissed"
       class="box-report-resolvecard"
     >
       <div class="box-report-resolvecard-question">
@@ -59,7 +74,9 @@ const handleNext = () => {
               powerStore.stillNoPower.length
             }})
           </button>
-          <button class="box-report-resolvecard-btc-no">CONTINUA SEM LUZ</button>
+          <button class="box-report-resolvecard-btc-no" @click="handleStillNoPower">
+            CONTINUA SEM LUZ
+          </button>
         </div>
       </div>
     </div>

@@ -13,7 +13,6 @@ const openChat = defineModel<boolean>('openChat', { default: true })
 defineProps<{
   openMenu: boolean
 }>()
-
 </script>
 
 <template>
@@ -21,7 +20,7 @@ defineProps<{
     <div class="box-chat-header">
       <div class="box-chat-verify-logged">
         <div class="box-chat-profile-image" :class="{ 'is-logged': authStore.isLoggedIn }">
-          <img src="../../assets/images/no-photo.svg"/>
+          <img src="../../assets/images/no-photo.svg" />
         </div>
         <div class="box-chat-toggle-profile-online">
           <span
@@ -60,11 +59,11 @@ defineProps<{
     </div>
   </div>
   <button
-      v-if="!openChat"
-      @click="openChat = true"
-      class="button-chat-outside"
-      :class="{ 'shift-to-side': openMenu }"
-    >
-      <img src="../../assets/images/chat.svg" />
-    </button>
+    v-if="!openChat"
+    @click="openChat = true"
+    class="button-chat-outside"
+    :class="{ 'shift-to-side': openMenu }"
+  >
+    <img src="../../assets/images/chat.svg" />
+  </button>
 </template>
