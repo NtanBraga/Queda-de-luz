@@ -11,7 +11,9 @@ export interface NeighborhoodInfo {
 }
 
 export const clearAllPolygons = () => {
-  polygonsCleaner.forEach((p) => p.setMap(null))
+  polygonsCleaner.forEach((p) => {
+    if (p) p.setMap(null)
+  })
   polygonsCleaner.clear()
 }
 
@@ -156,6 +158,14 @@ export const neighborhoodOutlines = async (
         zIndex: 15,
       })
 
+      polygon.addListener('click', () => {
+        window.dispatchEvent(
+          new CustomEvent('map-neighborhood-clicked', {
+            detail: { name: name, city: cityName },
+          }),
+        )
+      })
+
       polygonsCleaner.set(name, polygon)
 
       paths.forEach((path) => {
@@ -167,4 +177,10 @@ export const neighborhoodOutlines = async (
   if (polygonsCleaner.size > 0 && fixedCamera) {
     map.fitBounds(allBounds, 50)
   }
+}
+export const findNeighborhoodCoords = (latlng: google.maps.LatLng): string | null => {
+  for (const [name, polygon] of polygonsCleaner.entries()) {
+    if (google.maps.geometry.poly.containsLocation(latlng, polygon)) return name
+  }
+  return null
 }
