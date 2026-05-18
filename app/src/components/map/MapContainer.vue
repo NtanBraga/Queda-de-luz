@@ -29,7 +29,7 @@ const loadMap = async () => {
     isMapReady.value = true
     console.log(`Mapa de ${mapStore.city} foi carregado com sucesso.`)
   } catch (e) {
-    console.error('Errp ao carregar o mapa: ', e)
+    console.error('Erro ao carregar o mapa: ', e)
     isMapReady.value = true
   }
 }
