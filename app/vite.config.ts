@@ -22,7 +22,7 @@ export default defineConfig(({mode}) =>{
         }
       })
     ],
-    base: '/Queda-de-luz/app/dist',
+    base: './',
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))

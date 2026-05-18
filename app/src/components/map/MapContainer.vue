@@ -14,27 +14,6 @@ const powerStore = powerOutageStore()
 
 const isMapReady = ref(false)
 
-import { getReports } from '@/scripts/user/reports'
-
-const loadReports = async () => {
-  try {
-    const data = await getReports()
-
-    if (data && data.districts_Data) {
-      const reportedNames = Object.values(data.districts_Data).map(
-        (district: any) => district.district_Name,
-      )
-      powerStore.neighborhoodsNoPower = reportedNames
-     
-      console.log(
-        `Sincronizando dados: ${reportedNames.length} bairros reportados em ${mapStore.city}`,
-      )
-    }
-  } catch (e) {
-    console.error('Erro ao tentar carregar reportes: ', e)
-  }
-}
-
 const loadMap = async () => {
   try {
     isMapReady.value = false
@@ -46,8 +25,6 @@ const loadMap = async () => {
       mapStore.city,
       powerStore.neighborhoodsNoPower,
     )
-
-    await loadReports()
 
     isMapReady.value = true
     console.log(`Mapa de ${mapStore.city} foi carregado com sucesso.`)

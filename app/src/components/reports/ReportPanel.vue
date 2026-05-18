@@ -2,7 +2,6 @@
 import { ref, computed, watch } from 'vue'
 import { powerOutageStore } from '@/stores/powerOutage'
 import { mapBuildStore } from '@/stores/map'
-import { postReport } from '@/scripts/user/reports'
 import { type NeighborhoodInfo } from '@/scripts/maps/neighborhoodMap'
 
 const powerStore = powerOutageStore()
@@ -72,7 +71,6 @@ const handleReport = async () => {
       return
     }
 
-    await postReport(neighborhoodSearchId.id, token)
     powerStore.doReport(reportedNeighborhood)
 
     console.log(`Reportado o bairro: ${reportedNeighborhood}`)

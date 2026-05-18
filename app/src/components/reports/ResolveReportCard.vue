@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { powerOutageStore } from '@/stores/powerOutage'
-import { authAccountStore } from '@/stores/auth'
-import { mapBuildStore } from '@/stores/map'
-import { resolveReport } from '@/scripts/user/reports'
 import { storeToRefs } from 'pinia'
 import { ref, watch } from 'vue'
 
 const powerStore = powerOutageStore()
-const authStore = authAccountStore()
-const mapStore = mapBuildStore()
 
 const { resolveNeighborhoodName } = storeToRefs(powerStore)
 
@@ -18,12 +13,6 @@ const handleResolve = async () => {
   try {
     const districtName = resolveNeighborhoodName.value
     if (!districtName) return
-
-    const getToken = localStorage.getItem('userToken')!
-
-    const districtId = mapStore.neighborhoodsList.find((n) => n.name === districtName)!
-
-    await resolveReport(districtId.id, getToken)
 
     powerStore.fixIndexResolve(districtName)
 
@@ -54,7 +43,7 @@ watch(
 <template>
   <Transition name="pop">
     <div
-      v-if="authStore.isLoggedIn && powerStore.stillNoPower.length > 0 && !isDismissed"
+      v-if="powerStore.stillNoPower.length > 0 && !isDismissed"
       class="box-report-resolvecard"
     >
       <div class="box-report-resolvecard-question">
