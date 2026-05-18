@@ -8,10 +8,11 @@ export const mapBuildStore = defineStore('map', () => {
   const initiateMap = ref<google.maps.Map | undefined>(undefined)
   const detectLocation = ref<string>('')
   const selectedNeighborhood = ref<string>('')
+  const isSearching = ref(false)
 
   const setSelectedNeighborhood = (name: string) => {
     selectedNeighborhood.value = name
   }
 
-  return { city, neighborhoodsList, initiateMap, detectLocation, selectedNeighborhood, setSelectedNeighborhood }
+  return { city, neighborhoodsList, initiateMap, detectLocation, isSearching, selectedNeighborhood, setSelectedNeighborhood }
 })

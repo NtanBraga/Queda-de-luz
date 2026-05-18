@@ -1,6 +1,6 @@
 /// <reference types="google.maps" />
 import { createCityMask, fetchCityBounds, fetchCityOutline } from './cityMap'
-import { neighborhoodOutlines } from './neighborhoodMap'
+import { findNeighborhoodCoords, neighborhoodOutlines } from './neighborhoodMap'
 import { addUserlocationMarker, fetchAllLocation } from '../user/userLocation'
 
 //Funções para inicialização e customização do mapa
@@ -36,16 +36,38 @@ export async function initMap(elementId: string, city: string, neighborhoods: st
 
     mapOutput.addListener('click', async (e: google.maps.MapMouseEvent) => {
       if (e.latLng) {
+
+        const localNeighborhood = findNeighborhoodCoords(e.latLng)
+
+        if(localNeighborhood){
+          window.dispatchEvent(
+            new CustomEvent('map-neighborhood-clicked', {
+              detail: { name: localNeighborhood, city: city}
+            })
+          )
+          return
+        }
+
+        window.dispatchEvent(new CustomEvent('map-neighborhood-loading'))
+
         const lat = e.latLng.lat()
         const lng = e.latLng.lng()
 
-        const neighborhoodClicked = await fetchAllLocation(lat, lng)
+        try{
+          const neighborhoodClicked = await fetchAllLocation(lat, lng)
 
         window.dispatchEvent(
           new CustomEvent('map-neighborhood-clicked', {
             detail: { name: neighborhoodClicked?.neighborhood, city: neighborhoodClicked?.city },
           }),
         )
+        }catch(e){
+          console.error("Erro ao buscar localidade com clique: ", e)
+          window.dispatchEvent(new CustomEvent('map-neighborhood-clicked', {
+            detail: { name: 'Fora de area.', city: city},
+          }),
+          )
+        }
       }
     })
 

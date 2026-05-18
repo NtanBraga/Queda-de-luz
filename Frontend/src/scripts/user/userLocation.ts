@@ -27,12 +27,17 @@ export const fetchAllLocation = async (lat: number, lng: number) => {
     const response = await safeFetch(url)
     const data = await response.json()
 
-    const locationData: UserLocation = {
-      city: data.address.city || data.address.town || data.address.village,
-      neighborhood: data.address.suburb || data.address.neighborhood,
+    if (!data || !data.address) {
+      throw new Error('Endereço não encontrado pelo geocodificador.')
     }
 
-    cacheManager.set(cacheLocation, locationData, 2)
+    const locationData: UserLocation = {
+      city: data.address.city || data.address.town || data.address.village || '',
+      neighborhood: data.address.suburb || data.address.neighborhood || data.address.quarter || data.address.city_district || '',
+    }
+
+    if(locationData.city || locationData.neighborhood){cacheManager.set(cacheLocation, locationData, 2)}
+
     return locationData
   } catch (e) {
     console.error('Erro ao capturar geolocalização:', e)

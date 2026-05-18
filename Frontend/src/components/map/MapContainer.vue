@@ -20,20 +20,20 @@ const { neighborhoodsNoPower } = storeToRefs(powerStore)
 
 const loadMap = async () => {
   try {
+    isMapReady.value = false
     const mapDiv = document.getElementById('map-canvas')
     if (mapDiv) mapDiv.innerHTML = ''
 
     initiateMap.value = await initMap('map-canvas', city.value, neighborhoodsNoPower.value)
-
-    isMapReady.value = true
-    console.log(`Mapa de ${city.value} foi carregado com sucesso.`)
-
     
     if (neighborhoodsNoPower.value.length > 0 && initiateMap.value) {
       await neighborhoodOutlines(initiateMap.value, neighborhoodsNoPower.value, city.value, false)
     }
+    isMapReady.value = true
+    console.log(`Mapa de ${city.value} foi carregado com sucesso.`)
   } catch (e) {
     console.error('Errp ap carregar o mapa: ', e)
+    isMapReady.value = true
   }
 }
 
@@ -81,11 +81,13 @@ const handleDetected = (e: any) => (detectLocation.value = e.detail.name)
 const handleMapClick = (e: any) => {
   const { name, city: clickedCity } = e.detail
 
+
   if (clickedCity && clickedCity !== city.value) {
     console.warn('Clique fora da cidade atual.') 
     return
   }
 
+  mapStore.isSearching = false
   mapStore.setSelectedNeighborhood(name)
   console.log(`Bairro clicado no mapa: ${name}`)
 }
@@ -94,6 +96,7 @@ const setupMapEvents = () => {
   window.addEventListener('location-detected', handleLocationDetected)
   window.addEventListener('neighborhood-detected', handleDetected)
   window.addEventListener('map-neighborhood-clicked', handleMapClick)
+  window.addEventListener('map-neighborhood-loading', () => { mapStore.isSearching = true})
 }
 
 onMounted(async () => {
@@ -109,11 +112,14 @@ onUnmounted(() => {
   window.removeEventListener('location-detected', handleLocationDetected)
   window.removeEventListener('neighborhood-detected', handleDetected)
   window.removeEventListener('map-neighborhood-clicked', handleMapClick)
+  window.removeEventListener('map-neighborhood-loading', () => { mapStore.isSearching = true})
 })
 </script>
 
 <template>
-  <div class="box-map" id="map-canvas">
-    <div v-if="!isMapReady" class="box-map-loading"></div>
+  <div class="box-map" id="map-canvas"></div>
+  <div v-if="!isMapReady" class="box-map-loading">
+    <div class="box-map-spinner"></div>
+    <span class="box-map-loading-text">Carregando mapa...</span>
   </div>
 </template>

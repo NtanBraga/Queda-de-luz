@@ -34,7 +34,10 @@ watch(() => mapStore.selectedNeighborhood, (newVal) => {
 })
 
 const displayNeighborhood = computed(
-  () => {return putManualLocation.value || mapStore.selectedNeighborhood || mapStore.detectLocation || 'Detectando...'}
+  () => {
+    if(mapStore.isSearching) return "Buscando..."
+    return putManualLocation.value || mapStore.selectedNeighborhood || mapStore.detectLocation || 'Detectando...'
+  }
 )
 
 const selectManual = (name: string) => {
@@ -96,7 +99,7 @@ const cancelChange = () => {
         <h3 class="box-report-neighborhood">{{ displayNeighborhood }}</h3>
         <button
           class="box-report-btn-main"
-          :disabled="['Fora de area.', 'Detectando...'].includes(displayNeighborhood)"
+          :disabled="['Fora de area.', 'Detectando...', 'Buscando...'].includes(displayNeighborhood)"
           @click="handleReport"
         >
           LOCAL SEM LUZ
