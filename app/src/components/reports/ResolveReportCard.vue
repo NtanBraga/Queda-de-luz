@@ -42,10 +42,7 @@ watch(
 
 <template>
   <Transition name="pop">
-    <div
-      v-if="powerStore.stillNoPower.length > 0 && !isDismissed"
-      class="box-report-resolvecard"
-    >
+    <div v-if="powerStore.stillNoPower.length > 0 && !isDismissed" class="box-report-resolvecard">
       <div class="box-report-resolvecard-question">
         <h2>
           A luz no bairro <strong>{{ powerStore.resolveNeighborhoodName }}</strong> voltou?

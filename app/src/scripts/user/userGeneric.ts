@@ -1,4 +1,3 @@
-
 export interface UserGeneric {
   nome: string
   telefone: string
@@ -25,4 +24,3 @@ export interface UserCNPJ extends UserGeneric {
 export type UserAccount = UserCPF | UserCNPJ
 
 export type UserLogin = Pick<UserGeneric, 'nome' | 'senha'>
-

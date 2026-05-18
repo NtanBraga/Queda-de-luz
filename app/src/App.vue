@@ -17,8 +17,8 @@ const mapStore = mapBuildStore()
 const showAds = ref(false)
 const latestReportedNeighborhood = ref('')
 
-const openChat = ref(true)
-const openMenu = ref(true)
+const openChat = ref(false)
+const openMenu = ref(false)
 
 const handleReportAdded = (neightborhood: string) => {
   latestReportedNeighborhood.value = neightborhood
@@ -48,7 +48,9 @@ onMounted(async () => {
 
 <template>
   <div class="above-content">
-    <div class="box-news"><h1 class="placard-h1">Notícias sobre falta de luz aparecerão aqui!</h1></div>
+    <div class="box-news">
+      <h1 class="placard-h1">Notícias sobre falta de luz aparecerão aqui!</h1>
+    </div>
   </div>
   <div class="below-content">
     <ResolveReportCard />
