@@ -29,7 +29,7 @@ const { currentUser } = storeToRefs(authStore)
       </div>
       <div v-if="currentUser?.accountType === 'BusinessAccount'" class="box-chat-profile-cnpj-ads">
         <p class="box-chat-profile-cnpj-ads-label">
-          Produtos anunciados (Disponiveis: {{ currentUser?.slot_anuncio_quantidade + 2 }})
+          Produtos anunciados (Disponiveis: {{ currentUser?.slot_anuncio_quantidade }})
         </p>
         <div class="box-chat-profile-cnpj-ads-album">
           <div v-for="i in 3" :key="i" class="box-chat-profile-cnpj-slots">
