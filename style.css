@@ -1,8 +1,14 @@
+:root {
+    --lightblue-color: #419ce2;
+    --yellow-color: #f8d820;
+}
+
 *{
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
+
 
 html{
     scroll-snap-type: y mandatory;
@@ -19,6 +25,12 @@ body{
     font-family: "Stack Sans Text", sans-serif;
     color: #2d3436;
     -webkit-overflow-scrolling: touch;
+
+    background-image: 
+        linear-gradient(90deg, rgba(65, 156, 226, 0.15) 0%, transparent 15%),
+        linear-gradient(270deg, rgba(248, 216, 32, 0.15) 0%, transparent 15%);
+    background-attachment: fixed;
+
 }
 
 .mainpage-section{
@@ -36,7 +48,16 @@ body{
     text-align: center;
     max-width: 800px;
 }
-
+.mainpage-div-logoimage{
+    max-height: 120px;
+    width: auto;
+    max-width: 80%;
+    margin: 0 auto 20px;
+    border-radius: 0;
+    border: none !important;
+    box-shadow: none !important;
+    object-fit: contain;
+}
 .mainpage-div-buttons{
     display: flex;
     gap: 20px;
@@ -45,13 +66,43 @@ body{
     margin-top: 30px;
 }
 
-h1{
-        font-size: 3rem;
-        font-weight: 700;
-        letter-spacing: -1px;
-        margin-bottom: 20px;
-        color: #1e272e;
-    }
+.mainpage-title{
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #1e272e 10%, var(--lightblue-color) 70%, var(--yellow-color) 88%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+    color: #1e272e;
+}
+
+section.mainpage-section.footer {
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(65,156,226,0.08) 50%, rgba(248, 216, 32, 0.15) 100%) !important;
+    position: relative;
+    border-top: 1px solid rgba(65, 156, 226, 0.1);
+}
+
+section.mainpage-section.footer h1 {
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: #1e272e;
+    font-size: 2.5rem;
+}
+
+section.mainpage-section.footer p {
+    color: #2d3436;
+}
+
+.footer .mainpage-div-buttons a:first-child {
+    background-color: #1e272e;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+}
+
+.footer .mainpage-div-buttons a:first-child:hover {
+    background-color: #0d1215;
+}
+
 p{
     font-size: 1.25rem;
     line-height: 1.6;
@@ -62,35 +113,81 @@ p{
 
 
 img {
-    max-height: 45vh;
+    max-height: 60vh;
     width: auto;
     max-width: 100%;
     display: block;
     margin: 40px auto 0;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.04);
 }
 
 a{
     display: inline-block;
     margin-top: 40px;
     padding: 18px 45px;
-    background-color: #00b894;
+    background-color: var(--lightblue-color);
     color: white;
     text-decoration: none;
     font-weight: 700;
     font-size: 1.1rem;
     border-radius: 50px;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 185, 148, 0.3);
+    box-shadow: 0 4px 15px rgba(65, 156, 226, 0.3);
 }
 a:hover{
     background-color: #00a082;
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 185, 148, 0.4);
+    box-shadow: 0 8px 25px rgba(65, 156, 226, 0.4);
 }
 a:active{
     transform: translateY(-1px);
+}
+
+section:nth-child(even) {
+    background-color: rgba(248,249,250,0.3);
+}
+
+@media (min-width: 769px){
+    .mainpage-div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 50px;
+        max-width: 1100px;
+        text-align: left;
+    }
+    .mainpage-div-text{
+        flex: 0 0 42%;
+    }
+    .mainpage-div p {
+        margin: 0;
+    }
+    .mainpage-div img {
+        flex: 0 0 52%;
+        max-width: 52%;
+        max-height: 65vh;
+        margin-top: 0;
+    }
+    section:nth-child(3) .mainpage-div,
+    section:nth-child(5) .mainpage-div {
+        flex-direction: row-reverse;
+    }
+
+    section:first-child .mainpage-div,
+    section:last-child .mainpage-div {
+        flex-direction: column;
+        text-align: center;
+        max-width: 800px;
+    }
+    section:first-child img {
+        margin: 0 auto 20px;
+        max-width: 80%;
+    }
+    section:last-child img {
+        margin-top: 40px;
+    }
 }
 
 @media (max-width: 768px) or (max-height: 700px){
@@ -108,7 +205,7 @@ a:active{
         gap: 10px;
     }
     img{
-        max-height: 35vh;
+        max-height: 45vh;
         margin-top: 20px;
     }
     h1{
