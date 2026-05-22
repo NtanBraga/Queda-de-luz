@@ -15,15 +15,20 @@ const powerStore = powerOutageStore()
 const isMapReady = ref(false)
 
 const loadMap = async () => {
-
   try {
     isMapReady.value = false
+
+    const loadCity = mapStore.city && mapStore.city.trim() !== '' ? mapStore.city : 'Porto Alegre'
+    if (mapStore.neighborhoodsList.length === 0) {
+      mapStore.neighborhoodsList = await fetchAllNeighborhoods(mapStore.city)
+    }
+
     const mapDiv = document.getElementById('map-canvas')
     if (mapDiv) mapDiv.innerHTML = ''
 
     mapStore.initiateMap = await initMap(
       'map-canvas',
-      mapStore.city,
+      loadCity,
       powerStore.neighborhoodsNoPower,
     )
 
@@ -95,14 +100,9 @@ const setupMapEvents = () => {
 }
 
 onMounted(async () => {
-
   setupMapEvents()
 
-  if (mapStore.city && mapStore.neighborhoodsList.length === 0) {
-    mapStore.neighborhoodsList = await fetchAllNeighborhoods(mapStore.city)
-  }
   await loadMap()
-  
 })
 
 onUnmounted(() => {

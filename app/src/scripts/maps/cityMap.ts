@@ -12,15 +12,6 @@ const worldAmericaCoords: google.maps.LatLngLiteral[] = [
 ]
 
 export const fetchCityBounds = async (cityName: string): Promise<google.maps.LatLngBounds> => {
-  
-  if(!cityName  || cityName.trim() === ''){
-    console.warn('Cidade vazia, aplicando limites de Porto Alegre.')
-    return new google.maps.LatLngBounds(
-      { lat: -30.269359, lng: -51.299773 },
-      { lat: -29.930786, lng: -51.01142 },
-    )
-  }
-
   const cacheCityBounds = `city-bounds-${cityName}`
   try {
     const cached = cacheManager.get<{ south: number; west: number; north: number; east: number }>(

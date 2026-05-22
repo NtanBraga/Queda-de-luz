@@ -22,8 +22,6 @@ const handleReportAdded = (neightborhood: string) => {
   latestReportedNeighborhood.value = neightborhood
   showAds.value = true
 }
-
-
 </script>
 
 <style lang="scss">
