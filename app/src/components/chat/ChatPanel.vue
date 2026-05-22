@@ -25,6 +25,10 @@ defineProps<{
         <div class="box-chat-toggle-profile-online">
           <span
             class="button-switch-profile"
+            tabindex="0"
+            role="button"
+            :aria-label="chatStore.activeTab === 'profile' ? 'Voltar para as mensagens' : 'Ver meu perfil'"
+            @keyup.enter="chatStore.setActiveTab(chatStore.activeTab === 'profile' ? 'chat' : 'profile')"
             @click="chatStore.setActiveTab(chatStore.activeTab === 'profile' ? 'chat' : 'profile')"
             >{{
               chatStore.activeTab === 'profile'
@@ -38,6 +42,10 @@ defineProps<{
             v-if="authStore.isLoggedIn"
             :class="{ 'is-active': chatStore.activeTab === 'online' }"
             class="button-switch-online"
+            tabindex="0"
+            role="button"
+            :aria-label="chatStore.activeTab === 'online' ? 'Fechar lista de usuários' : 'Ver usuários online'"
+            @keyup.enter="chatStore.setActiveTab(chatStore.activeTab === 'online' ? 'chat' : 'online')"
             @click="chatStore.setActiveTab(chatStore.activeTab === 'online' ? 'chat' : 'online')"
           >
             {{

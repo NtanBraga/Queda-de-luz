@@ -32,7 +32,7 @@ const { currentUser } = storeToRefs(authStore)
           Produtos anunciados (Disponiveis: {{ currentUser?.slot_anuncio_quantidade }})
         </p>
         <div class="box-chat-profile-cnpj-ads-album">
-          <div v-for="i in 3" :key="i" class="box-chat-profile-cnpj-slots">
+          <div v-for="i in 3" :key="i" class="box-chat-profile-cnpj-slots" tabindex="0" :aria-label="`Slot de anúncio ${i}`">
             <span>Placeholder</span>
           </div>
         </div>

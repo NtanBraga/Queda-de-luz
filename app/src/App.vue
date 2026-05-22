@@ -53,13 +53,7 @@ onMounted(async () => {
     </div>
   </div>
   <div class="below-content">
-    <ResolveReportCard />
-
-    <AdsModal
-      :show="showAds"
-      :latest-reported-neighborhood="latestReportedNeighborhood"
-      @close="showAds = false"
-    />
+    <MapContainer />
 
     <ReportPanel
       :neighborhood-list="mapStore.neighborhoodsList"
@@ -67,9 +61,16 @@ onMounted(async () => {
     />
 
     <PowerOutageList v-model:open-menu="openMenu" />
-
-    <MapContainer />
-
+    
     <ChatPanel v-model:open-chat="openChat" :open-menu="openMenu" />
+
+    <ResolveReportCard />
+    
+    <AdsModal
+      :show="showAds"
+      :latest-reported-neighborhood="latestReportedNeighborhood"
+      @close="showAds = false"
+    />
+
   </div>
 </template>

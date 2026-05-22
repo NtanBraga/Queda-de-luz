@@ -7,7 +7,7 @@ defineProps<{
 <template>
   <div class="box-chat-viewonline">
     <div class="box-chat-viewonline-container">
-      <table class="box-chat-viewonline-table">
+      <table class="box-chat-viewonline-table" aria-label="Lista de usuários online no bairro.">
         <thead>
           <tr>
             <th>Usuário</th>

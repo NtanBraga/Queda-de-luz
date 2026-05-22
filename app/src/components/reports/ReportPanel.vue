@@ -115,9 +115,17 @@ const cancelChange = () => {
           placeholder="Buscar bairro..."
           class="box-report-input"
           autofocus
+          aria-label="Digite o nome do seu bairro para filtrar."
         />
         <ul class="box-report-dropdown">
-          <li v-for="n in filteredNeighborhoods" :key="n.id" @click="selectManual(n.name)">
+          <li
+            v-for="n in filteredNeighborhoods"
+            :key="n.id"
+            tabindex="0"
+            role="option"
+            @click="selectManual(n.name)"
+            @keyup.enter="selectManual(n.name)"
+          >
             {{ n.name }}
           </li>
         </ul>
