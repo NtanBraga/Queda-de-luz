@@ -119,9 +119,13 @@ export const addUserlocationMarker = async (
         }
       },
       (error) => {
-        console.warn('Erro ao obter geolocalização ou permissão negada: ', error.message)
+        if(error.code === 1){
+          console.error("Usuário recusou o pedido de Geolocalização.")
+        }else if(error.code === 3){
+          console.error('O pedido demorou demais.')
+        }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     )
   } else {
     console.error('Geolocalização não suportada pelo navegador.')
