@@ -10,8 +10,6 @@ import MapContainer from './components/map/MapContainer.vue'
 import ChatPanel from './components/chat/ChatPanel.vue'
 import AdsModal from './components/common/AdsModal.vue'
 
-import { fetchAllNeighborhoods } from './scripts/maps/neighborhoodMap'
-
 const mapStore = mapBuildStore()
 
 const showAds = ref(false)
@@ -25,21 +23,7 @@ const handleReportAdded = (neightborhood: string) => {
   showAds.value = true
 }
 
-const loadInitialData = async () => {
-  try {
-    if (mapStore.neighborhoodsList.length === 0) {
-      mapStore.neighborhoodsList = await fetchAllNeighborhoods(mapStore.city)
-    }
-    console.log(`Carregamento inicial realizado.Bairros: ${mapStore.neighborhoodsList.length}`)
-  } catch (e) {
-    console.error('Eroo ao carregar dados iniciais: ', e)
-    throw e
-  }
-}
 
-onMounted(async () => {
-  await loadInitialData()
-})
 </script>
 
 <style lang="scss">
@@ -61,16 +45,15 @@ onMounted(async () => {
     />
 
     <PowerOutageList v-model:open-menu="openMenu" />
-    
+
     <ChatPanel v-model:open-chat="openChat" :open-menu="openMenu" />
 
     <ResolveReportCard />
-    
+
     <AdsModal
       :show="showAds"
       :latest-reported-neighborhood="latestReportedNeighborhood"
       @close="showAds = false"
     />
-
   </div>
 </template>

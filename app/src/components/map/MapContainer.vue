@@ -15,6 +15,7 @@ const powerStore = powerOutageStore()
 const isMapReady = ref(false)
 
 const loadMap = async () => {
+
   try {
     isMapReady.value = false
     const mapDiv = document.getElementById('map-canvas')
@@ -37,7 +38,7 @@ const loadMap = async () => {
 watch(
   () => powerStore.neighborhoodsNoPower,
   async (newList) => {
-    if (!mapStore.initiateMap && !isMapReady.value) return
+    if (!mapStore.initiateMap || !isMapReady.value) return
 
     clearAllPolygons()
 
@@ -64,7 +65,7 @@ const handleLocationDetected = async (e: any) => {
     if (newCity === mapStore.city) {
       mapStore.detectLocation = neighborhood
     } else {
-      mapStore.detectLocation = 'Fora de area'
+      mapStore.detectLocation = 'Fora de area.'
     }
   }
 }
@@ -94,12 +95,14 @@ const setupMapEvents = () => {
 }
 
 onMounted(async () => {
+
   setupMapEvents()
 
-  if (mapStore.neighborhoodsList.length === 0) {
+  if (mapStore.city && mapStore.neighborhoodsList.length === 0) {
     mapStore.neighborhoodsList = await fetchAllNeighborhoods(mapStore.city)
   }
   await loadMap()
+  
 })
 
 onUnmounted(() => {

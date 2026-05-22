@@ -121,7 +121,7 @@ export const addUserlocationMarker = async (
       (error) => {
         console.warn('Erro ao obter geolocalização ou permissão negada: ', error.message)
       },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     )
   } else {
     console.error('Geolocalização não suportada pelo navegador.')
