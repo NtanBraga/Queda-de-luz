@@ -92,7 +92,7 @@ const cancelChange = () => {
 </script>
 
 <template>
-  <div class="box-report-wrapper">
+  <div class="box-report-wrapper" v-if="!mapStore.showOptions">
     <div class="box-report-card">
       <template v-if="!isChangingReport">
         <p class="box-report-label">Reportar falta de luz em:</p>
@@ -104,7 +104,7 @@ const cancelChange = () => {
           "
           @click="handleReport"
         >
-        CONFIRMAR REPORTE
+          CONFIRMAR REPORTE
         </button>
         <button class="box-report-btn-change" @click="isChangingReport = true">Mudar bairro</button>
       </template>

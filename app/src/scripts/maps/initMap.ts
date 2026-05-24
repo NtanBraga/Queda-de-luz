@@ -66,12 +66,10 @@ export async function initMap(
           const neighborhoodClicked = await fetchAllLocation(lat, lng)
 
           dispatchNeighborhoodClick(neighborhoodClicked?.neighborhood!, neighborhoodClicked?.city!)
-
         } catch (e) {
           console.error('Erro ao buscar localidade com clique: ', e)
 
           dispatchNeighborhoodClick('Fora de area.', city)
-          
         }
       }
     })

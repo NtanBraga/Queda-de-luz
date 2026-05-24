@@ -3,7 +3,6 @@
 let lastRequest = 0
 
 const rateLimit = async (): Promise<void> => {
-  
   const interval = 1100
   const date = Date.now()
   const timeSinceLastRequest = date - lastRequest
@@ -32,17 +31,17 @@ export const safeFetch = async (url: string, timeout = 25000, retries = 3): Prom
 
     clearTimeout(timer)
     return response
-  }catch (error: any) {
+  } catch (error: any) {
     clearTimeout(timer)
 
-    if(retries > 0){
+    if (retries > 0) {
       console.warn(`Falha na requisição. Tentando novamente. ${retries} tentativas faltando...`)
-    
-      if(url.includes('overpass')) {
+
+      if (url.includes('overpass')) {
         await new Promise((resolve) => setTimeout(resolve, 1000))
       }
 
-      return safeFetch(url,timeout, retries - 1)
+      return safeFetch(url, timeout, retries - 1)
     }
 
     if (error.name === 'AbortError') {

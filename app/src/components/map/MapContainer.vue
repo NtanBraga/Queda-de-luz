@@ -14,7 +14,7 @@ const DEFAULT_CITY = 'Porto Alegre'
 const CACHED_KEYS = {
   CITY: 'user_selected_city',
   LAT: 'user-lat',
-  LNG: 'user-lng'
+  LNG: 'user-lng',
 }
 
 const mapStore = mapBuildStore()
@@ -22,14 +22,13 @@ const powerStore = powerOutageStore()
 
 const isMapReady = ref(false)
 
-const showOptions = ref(false)
 const isLocating = ref(false)
 
 //Motor de carregamento o mapa
 const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
   try {
     isMapReady.value = false
-    showOptions.value = false
+    mapStore.showOptions = false
     isLocating.value = false
 
     if (mapStore.neighborhoodsList.length === 0 || mapStore.city !== targetCity) {
@@ -81,7 +80,7 @@ watch(
 //Aciona a localização do usuario se ele quiser
 const handleUseLocation = async () => {
   isLocating.value = true
-  showOptions.value = false
+  mapStore.showOptions = false
 
   try {
     const coords = await requestUserLocation()
@@ -141,7 +140,7 @@ const checkUserLocation = async (cachedLat?: number, cachedLng?: number) => {
       if (locationData && locationData.city) {
         await loadMap(locationData.city, coords.lat, coords.lng)
       }
-    }else {
+    } else {
       console.log('Usuário continua na mesma localização. Otimizando renderização.')
     }
   } catch (e) {
@@ -177,7 +176,7 @@ onMounted(async () => {
     await checkUserLocation(lat, lng)
     return
   }
-  showOptions.value = true
+  mapStore.showOptions = true
 })
 
 onUnmounted(() => {
@@ -193,8 +192,8 @@ onUnmounted(() => {
 <template>
   <div class="box-map" id="map-canvas"></div>
   <div v-if="!isMapReady" class="box-map-loading">
-    <div v-if="showOptions" class="box-map-options-overlay">
-      <h2>Bem-vindo ao Infralá!</h2>
+    <div v-if="mapStore.showOptions" class="box-map-options-overlay">
+      <h2>Bem-vindo ao InfraLA!</h2>
       <p>
         Queremos mostrar os status de infraestrutura da sua cidade. Recomendamos ativar a sua
         localização!

@@ -125,7 +125,7 @@ export const addUserLocationMarker = async (
       }),
     )
   }
-  
+
   new AdvancedMarkerElement({
     map: map,
     position: userPos,

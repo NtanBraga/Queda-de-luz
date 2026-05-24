@@ -9,6 +9,7 @@ export const mapBuildStore = defineStore('map', () => {
   const detectLocation = ref<string>('')
   const selectedNeighborhood = ref<string>('')
   const isSearching = ref(false)
+  const showOptions = ref(false)
 
   const setSelectedNeighborhood = (name: string) => {
     selectedNeighborhood.value = name
@@ -20,6 +21,7 @@ export const mapBuildStore = defineStore('map', () => {
     initiateMap,
     detectLocation,
     isSearching,
+    showOptions,
     selectedNeighborhood,
     setSelectedNeighborhood,
   }
