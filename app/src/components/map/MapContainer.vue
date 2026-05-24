@@ -195,8 +195,8 @@ onUnmounted(() => {
     <div v-if="mapStore.showOptions" class="box-map-options-overlay">
       <h2>Bem-vindo ao InfraLA!</h2>
       <p>
-        Queremos mostrar os status de infraestrutura da sua cidade. Recomendamos ativar a sua
-        localização!
+        Queremos mostrar os status de infraestrutura da sua cidade.<br><br><strong style="color: #E29578;"> Recomendamos ativar a sua
+        localização!</strong>
       </p>
 
       <div class="box-map-options-btns">
@@ -204,7 +204,7 @@ onUnmounted(() => {
           USAR MINHA LOCALIZAÇÃO
         </button>
         <button class="box-map-options-btc-secondary" @click="handleSkipLocation">
-          Continuar em Porto Alegre
+          CONTINUAR EM PORTO ALEGRE
         </button>
       </div>
     </div>
