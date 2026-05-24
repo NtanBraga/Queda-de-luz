@@ -104,7 +104,7 @@ const cancelChange = () => {
           "
           @click="handleReport"
         >
-          LOCAL SEM LUZ
+        CONFIRMAR REPORTE
         </button>
         <button class="box-report-btn-change" @click="isChangingReport = true">Mudar bairro</button>
       </template>
