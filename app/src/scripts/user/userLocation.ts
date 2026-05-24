@@ -8,6 +8,32 @@ interface UserLocation {
   neighborhood: string
 }
 
+export const requestUserLocation = (): Promise<{ lat: number; lng: number }> => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocalização não suportada pelo navegador.'))
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position: GeolocationPosition) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        })
+      },
+      (error) => {
+        if (error.code === 1) {
+          console.error('Usuário recusou o pedido de Geolocalização.')
+        } else if (error.code === 3) {
+          console.error('O pedido demorou demais.')
+        }
+        reject(error)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    )
+  })
+}
+
 export const fetchAllLocation = async (lat: number, lng: number) => {
   const fixedLat = lat.toFixed(4)
   const fixedLng = lng.toFixed(4)
@@ -73,61 +99,47 @@ const userLocationContainer = (neighborhoodName: string) => {
   return container
 }
 
-export const addUserlocationMarker = async (
+export const addUserLocationMarker = async (
   map: google.maps.Map,
   cityBounds: google.maps.LatLngLiteral[][],
+  lat: number,
+  lng: number,
 ) => {
   const { AdvancedMarkerElement } = (await google.maps.importLibrary(
     'marker',
   )) as google.maps.MarkerLibrary
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      async (position: GeolocationPosition) => {
-        const userPos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude)
+  const userPos = new google.maps.LatLng(lat, lng)
 
-        const cityPolygon = new google.maps.Polygon({ paths: cityBounds })
+  const cityPolygon = new google.maps.Polygon({ paths: cityBounds })
 
-        const locationData = await fetchAllLocation(userPos.lat(), userPos.lng())
+  const locationData = await fetchAllLocation(userPos.lat(), userPos.lng())
 
-        if (!locationData) {
-          console.warn('Não foi possivel carregar os dados de localização para o marcador')
-          return
-        } else {
-          window.dispatchEvent(
-            new CustomEvent('location-detected', {
-              detail: { city: locationData.city, neighborhood: locationData.neighborhood },
-            }),
-          )
-        }
+  if (!locationData) {
+    console.warn('Não foi possivel carregar os dados de localização para o marcador')
+    return
+  } else {
+    window.dispatchEvent(
+      new CustomEvent('location-detected', {
+        detail: { city: locationData.city, neighborhood: locationData.neighborhood },
+      }),
+    )
+  }
 
-        if (google.maps.geometry.poly.containsLocation(userPos, cityPolygon)) {
-          new AdvancedMarkerElement({
-            map: map,
-            position: userPos,
-            content: userLocationContainer(locationData.neighborhood),
-            title: 'Sua Localização',
-            zIndex: 30,
-          })
-          window.dispatchEvent(
-            new CustomEvent('neighborhood-detected', {
-              detail: { name: locationData.neighborhood },
-            }),
-          )
-        } else {
-          console.log('Usuario localizado fora dos limites da cidade.')
-        }
-      },
-      (error) => {
-        if(error.code === 1){
-          console.error("Usuário recusou o pedido de Geolocalização.")
-        }else if(error.code === 3){
-          console.error('O pedido demorou demais.')
-        }
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+  if (google.maps.geometry.poly.containsLocation(userPos, cityPolygon)) {
+    new AdvancedMarkerElement({
+      map: map,
+      position: userPos,
+      content: locationData ? userLocationContainer(locationData.neighborhood) : undefined,
+      title: 'Sua Localização',
+      zIndex: 30,
+    })
+    window.dispatchEvent(
+      new CustomEvent('neighborhood-detected', {
+        detail: { name: locationData.neighborhood },
+      }),
     )
   } else {
-    console.error('Geolocalização não suportada pelo navegador.')
+    console.log('Usuario localizado fora dos limites da cidade.')
   }
 }

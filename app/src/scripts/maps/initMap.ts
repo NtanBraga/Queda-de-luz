@@ -1,11 +1,17 @@
 /// <reference types="google.maps" />
 import { createCityMask, fetchCityBounds, fetchCityOutline } from './cityMap'
 import { findNeighborhoodCoords, neighborhoodOutlines } from './neighborhoodMap'
-import { addUserlocationMarker, fetchAllLocation } from '../user/userLocation'
+import { addUserLocationMarker, fetchAllLocation } from '../user/userLocation'
 
 //Funções para inicialização e customização do mapa
 
-export async function initMap(elementId: string, city: string, neighborhoods: string[]) {
+export async function initMap(
+  elementId: string,
+  city: string,
+  neighborhoods: string[],
+  userLat?: number,
+  userLng?: number,
+) {
   const { Map } = (await google.maps.importLibrary('maps')) as google.maps.MapsLibrary
 
   await google.maps.importLibrary('geometry')
@@ -75,7 +81,9 @@ export async function initMap(elementId: string, city: string, neighborhoods: st
 
     await neighborhoodOutlines(mapOutput, neighborhoods, city)
 
-    await addUserlocationMarker(mapOutput, outlineCity)
+    if (userLat !== undefined && userLng !== undefined) {
+      await addUserLocationMarker(mapOutput, outlineCity, userLat, userLng)
+    }
 
     return mapOutput
   }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, ref } from 'vue'
-import { initMap } from '@/scripts/maps/map'
+import { initMap } from '@/scripts/maps/initMap'
 import {
   neighborhoodOutlines,
   clearAllPolygons,
@@ -8,28 +8,39 @@ import {
 } from '@/scripts/maps/neighborhoodMap'
 import { mapBuildStore } from '@/stores/map'
 import { powerOutageStore } from '@/stores/powerOutage'
+import { fetchAllLocation, requestUserLocation } from '@/scripts/user/userLocation'
 
 const mapStore = mapBuildStore()
 const powerStore = powerOutageStore()
 
 const isMapReady = ref(false)
 
-const loadMap = async () => {
+const showOptions = ref(false)
+const isLocating = ref(false)
+
+const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
   try {
     isMapReady.value = false
+    showOptions.value = false
+    isLocating.value = false
 
-    const loadCity = mapStore.city && mapStore.city.trim() !== '' ? mapStore.city : 'Porto Alegre'
-    if (mapStore.neighborhoodsList.length === 0) {
-      mapStore.neighborhoodsList = await fetchAllNeighborhoods(mapStore.city)
+    if (mapStore.neighborhoodsList.length === 0 || mapStore.city !== targetCity) {
+      mapStore.neighborhoodsList = await fetchAllNeighborhoods(targetCity)
     }
+
+    mapStore.city = targetCity
+
+    localStorage.setItem('user-selected-city', targetCity)
 
     const mapDiv = document.getElementById('map-canvas')
     if (mapDiv) mapDiv.innerHTML = ''
 
     mapStore.initiateMap = await initMap(
       'map-canvas',
-      loadCity,
+      targetCity,
       powerStore.neighborhoodsNoPower,
+      lat,
+      lng,
     )
 
     isMapReady.value = true
@@ -54,24 +65,35 @@ watch(
   { deep: true },
 )
 
+const handleUseLocation = async () => {
+  isLocating.value = true
+  showOptions.value = false
+
+  try {
+    const coords = await requestUserLocation()
+    const locationData = await fetchAllLocation(coords.lat, coords.lng)
+
+    if (locationData && locationData.city) {
+      await loadMap(locationData.city, coords.lat, coords.lng)
+    } else {
+      await loadMap('Porto Alegre', coords.lat, coords.lng)
+    }
+  } catch (error) {
+    loadMap('Porto Alegre')
+  }
+}
+const handleSkipLocation = () => {
+  loadMap('Porto Alegre')
+}
+
 const handleLocationDetected = async (e: any) => {
   const { neighborhood, city: newCity } = e.detail
 
-  const strictCity = mapStore.city !== ''
-
-  if (!strictCity && newCity && newCity !== mapStore.city) {
-    console.warn(`Mudança de cidade: ${mapStore.city} -> ${newCity}`)
-    mapStore.city = newCity
-
-    mapStore.neighborhoodsList = await fetchAllNeighborhoods(newCity)
-
-    await loadMap()
-  } else if (strictCity) {
-    if (newCity === mapStore.city) {
-      mapStore.detectLocation = neighborhood
-    } else {
-      mapStore.detectLocation = 'Fora de area.'
-    }
+  if (newCity && newCity !== mapStore.city && isMapReady.value) {
+    console.warn(`Localização ativada posteriormente. Redirecionando para ${newCity}`)
+    await loadMap(newCity)
+  } else if (newCity === mapStore.city) {
+    mapStore.detectLocation = neighborhood
   }
 }
 
@@ -102,7 +124,17 @@ const setupMapEvents = () => {
 onMounted(async () => {
   setupMapEvents()
 
-  await loadMap()
+  const savedCity = localStorage.getItem('user-selected-city')
+
+  if (savedCity) {
+    mapStore.city = savedCity
+  }
+
+  if (mapStore.city && mapStore.city.trim() !== '') {
+    await loadMap(mapStore.city)
+    return
+  }
+  showOptions.value = true
 })
 
 onUnmounted(() => {
@@ -118,7 +150,27 @@ onUnmounted(() => {
 <template>
   <div class="box-map" id="map-canvas"></div>
   <div v-if="!isMapReady" class="box-map-loading">
-    <div class="box-map-spinner"></div>
-    <span class="box-map-loading-text">Carregando mapa...</span>
+    <div v-if="showOptions" class="box-map-options-overlay">
+      <h2>Bem-vindo ao Infralá!</h2>
+      <p>
+        Queremos mostrar os status de infraestrutura da sua cidade. Recomendamos ativar a sua
+        localização!
+      </p>
+
+      <div class="box-map-options-btns">
+        <button class="box-map-options-btn-primary" @click="handleUseLocation">
+          USAR MINHA LOCALIZAÇÃO
+        </button>
+        <button class="box-map-options-btc-secondary" @click="handleSkipLocation">
+          Continuar em Porto Alegre
+        </button>
+      </div>
+    </div>
+    <div v-else class="box-map-spinner-container">
+      <div class="box-map-spinner"></div>
+      <span class="box-map-loading-text">{{
+        isLocating ? 'Buscando sua cidade...' : 'Carregando mapa...'
+      }}</span>
+    </div>
   </div>
 </template>
