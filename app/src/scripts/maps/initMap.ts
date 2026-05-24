@@ -5,6 +5,14 @@ import { addUserLocationMarker, fetchAllLocation } from '../user/userLocation'
 
 //Funções para inicialização e customização do mapa
 
+const dispatchNeighborhoodClick = (name: string, cityToDispatch: string) => {
+  window.dispatchEvent(
+    new CustomEvent('map-neighborhood-clicked', {
+      detail: { name, city: cityToDispatch },
+    }),
+  )
+}
+
 export async function initMap(
   elementId: string,
   city: string,
@@ -45,11 +53,7 @@ export async function initMap(
         const localNeighborhood = findNeighborhoodCoords(e.latLng)
 
         if (localNeighborhood) {
-          window.dispatchEvent(
-            new CustomEvent('map-neighborhood-clicked', {
-              detail: { name: localNeighborhood, city: city },
-            }),
-          )
+          dispatchNeighborhoodClick(localNeighborhood, city)
           return
         }
 
@@ -61,18 +65,13 @@ export async function initMap(
         try {
           const neighborhoodClicked = await fetchAllLocation(lat, lng)
 
-          window.dispatchEvent(
-            new CustomEvent('map-neighborhood-clicked', {
-              detail: { name: neighborhoodClicked?.neighborhood, city: neighborhoodClicked?.city },
-            }),
-          )
+          dispatchNeighborhoodClick(neighborhoodClicked?.neighborhood!, neighborhoodClicked?.city!)
+
         } catch (e) {
           console.error('Erro ao buscar localidade com clique: ', e)
-          window.dispatchEvent(
-            new CustomEvent('map-neighborhood-clicked', {
-              detail: { name: 'Fora de area.', city: city },
-            }),
-          )
+
+          dispatchNeighborhoodClick('Fora de area.', city)
+          
         }
       }
     })

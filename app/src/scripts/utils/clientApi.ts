@@ -1,14 +1,9 @@
-const requestHeader = {
-  Accept: 'application/json',
-  'X-Requested-With': 'XMLHttpRequest',
-  'User-Agent': 'OutageMap/0.1 (https://github.com/NtanBraga/Queda-de-luz)',
-}
-
 //Requisição client-side para APIs de terceiros como Nominatim e Overpass
 //Evitar bloqueio 'Too many attempts' em host-side caso haja muitas requisições
+let lastRequest = 0
 
 const rateLimit = async (): Promise<void> => {
-  let lastRequest = 0
+  
   const interval = 1100
   const date = Date.now()
   const timeSinceLastRequest = date - lastRequest
@@ -20,15 +15,14 @@ const rateLimit = async (): Promise<void> => {
   lastRequest = Date.now()
 }
 
-export const safeFetch = async (url: string, timeout = 25000): Promise<Response> => {
+export const safeFetch = async (url: string, timeout = 25000, retries = 3): Promise<Response> => {
   if (url.includes('nominatim.openstreetmap.org')) await rateLimit()
 
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort, timeout)
+  const timer = setTimeout(() => controller.abort(), timeout)
 
   try {
     const response = await fetch(url, {
-      headers: requestHeader,
       signal: controller.signal,
     })
 
@@ -38,8 +32,19 @@ export const safeFetch = async (url: string, timeout = 25000): Promise<Response>
 
     clearTimeout(timer)
     return response
-  } catch (error: any) {
+  }catch (error: any) {
     clearTimeout(timer)
+
+    if(retries > 0){
+      console.warn(`Falha na requisição. Tentando novamente. ${retries} tentativas faltando...`)
+    
+      if(url.includes('overpass')) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+
+      return safeFetch(url,timeout, retries - 1)
+    }
+
     if (error.name === 'AbortError') {
       throw new Error('A requisição demorou demmais: Timeout')
     }

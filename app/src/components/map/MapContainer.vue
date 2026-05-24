@@ -10,6 +10,13 @@ import { mapBuildStore } from '@/stores/map'
 import { powerOutageStore } from '@/stores/powerOutage'
 import { fetchAllLocation, requestUserLocation } from '@/scripts/user/userLocation'
 
+const DEFAULT_CITY = 'Porto Alegre'
+const CACHED_KEYS = {
+  CITY: 'user_selected_city',
+  LAT: 'user-lat',
+  LNG: 'user-lng'
+}
+
 const mapStore = mapBuildStore()
 const powerStore = powerOutageStore()
 
@@ -18,6 +25,7 @@ const isMapReady = ref(false)
 const showOptions = ref(false)
 const isLocating = ref(false)
 
+//Motor de carregamento o mapa
 const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
   try {
     isMapReady.value = false
@@ -30,10 +38,10 @@ const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
 
     mapStore.city = targetCity
 
-    localStorage.setItem('user-selected-city', targetCity)
+    localStorage.setItem(CACHED_KEYS.CITY, targetCity)
     if (lat !== undefined && lng !== undefined) {
-      localStorage.setItem('user-lat', lat.toString())
-      localStorage.setItem('user-lng', lng.toString())
+      localStorage.setItem(CACHED_KEYS.LAT, lat.toString())
+      localStorage.setItem(CACHED_KEYS.LNG, lng.toString())
     }
 
     const mapDiv = document.getElementById('map-canvas')
@@ -55,6 +63,7 @@ const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
   }
 }
 
+//Fica de olho na falta de luz nos bairros e desenha
 watch(
   () => powerStore.neighborhoodsNoPower,
   async (newList) => {
@@ -69,6 +78,7 @@ watch(
   { deep: true },
 )
 
+//Aciona a localização do usuario se ele quiser
 const handleUseLocation = async () => {
   isLocating.value = true
   showOptions.value = false
@@ -77,23 +87,21 @@ const handleUseLocation = async () => {
     const coords = await requestUserLocation()
     const locationData = await fetchAllLocation(coords.lat, coords.lng)
 
-    const targetCity = locationData?.city || 'Porto Alegre'
+    const targetCity = locationData?.city || DEFAULT_CITY
     await loadMap(targetCity, coords.lat, coords.lng)
   } catch (error) {
-    loadMap('Porto Alegre')
+    loadMap(DEFAULT_CITY)
   }
 }
 const handleSkipLocation = () => {
-  loadMap('Porto Alegre')
+  loadMap(DEFAULT_CITY)
 }
 
+// Se verificado uma cidade nova, ele é redirecionado
 const handleLocationDetected = async (e: any) => {
   const { neighborhood, city: newCity } = e.detail
 
-  if (newCity && newCity !== mapStore.city && isMapReady.value) {
-    console.warn(`Localização ativada posteriormente. Redirecionando para ${newCity}`)
-    await loadMap(newCity)
-  } else if (newCity === mapStore.city) {
+  if (newCity === mapStore.city) {
     mapStore.detectLocation = neighborhood
   }
 }
@@ -103,16 +111,19 @@ const handleDetected = (e: any) => (mapStore.detectLocation = e.detail.name)
 const handleMapClick = (e: any) => {
   const { name, city: clickedCity } = e.detail
 
+  mapStore.isSearching = false
+
   if (clickedCity && clickedCity !== mapStore.city) {
     console.warn('Clique fora da cidade atual.')
+    mapStore.setSelectedNeighborhood('Fora de area.')
     return
   }
 
-  mapStore.isSearching = false
   mapStore.setSelectedNeighborhood(name)
   console.log(`Bairro clicado no mapa: ${name}`)
 }
 
+// Fazer o check se usuario mudou de localidade e atualizar o marker dele
 const checkUserLocation = async (cachedLat?: number, cachedLng?: number) => {
   try {
     const coords = await requestUserLocation()
@@ -129,9 +140,9 @@ const checkUserLocation = async (cachedLat?: number, cachedLng?: number) => {
 
       if (locationData && locationData.city) {
         await loadMap(locationData.city, coords.lat, coords.lng)
-      } else {
-        console.log('Usuário continua na mesma localização. Otimizando renderização.')
       }
+    }else {
+      console.log('Usuário continua na mesma localização. Otimizando renderização.')
     }
   } catch (e) {
     console.warn('Verificação de localização falhou ou negada.')
@@ -150,9 +161,9 @@ const setupMapEvents = () => {
 onMounted(async () => {
   setupMapEvents()
 
-  const savedCity = localStorage.getItem('user-selected-city')
-  const savedLat = localStorage.getItem('user-lat')
-  const savedLng = localStorage.getItem('user-lng')
+  const savedCity = localStorage.getItem(CACHED_KEYS.CITY)
+  const savedLat = localStorage.getItem(CACHED_KEYS.LAT)
+  const savedLng = localStorage.getItem(CACHED_KEYS.LNG)
 
   if (savedCity) {
     mapStore.city = savedCity
