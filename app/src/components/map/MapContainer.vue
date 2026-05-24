@@ -31,6 +31,10 @@ const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
     mapStore.city = targetCity
 
     localStorage.setItem('user-selected-city', targetCity)
+    if (lat !== undefined && lng !== undefined) {
+      localStorage.setItem('user-lat', lat.toString())
+      localStorage.setItem('user-lng', lng.toString())
+    }
 
     const mapDiv = document.getElementById('map-canvas')
     if (mapDiv) mapDiv.innerHTML = ''
@@ -73,11 +77,8 @@ const handleUseLocation = async () => {
     const coords = await requestUserLocation()
     const locationData = await fetchAllLocation(coords.lat, coords.lng)
 
-    if (locationData && locationData.city) {
-      await loadMap(locationData.city, coords.lat, coords.lng)
-    } else {
-      await loadMap('Porto Alegre', coords.lat, coords.lng)
-    }
+    const targetCity = locationData?.city || 'Porto Alegre'
+    await loadMap(targetCity, coords.lat, coords.lng)
   } catch (error) {
     loadMap('Porto Alegre')
   }
@@ -112,6 +113,31 @@ const handleMapClick = (e: any) => {
   console.log(`Bairro clicado no mapa: ${name}`)
 }
 
+const checkUserLocation = async (cachedLat?: number, cachedLng?: number) => {
+  try {
+    const coords = await requestUserLocation()
+
+    const isNewLocation =
+      !cachedLat ||
+      !cachedLng ||
+      coords.lat.toFixed(3) !== cachedLat.toFixed(3) ||
+      coords.lng.toFixed(3) !== cachedLng.toFixed(3)
+
+    if (isNewLocation) {
+      console.log('Movimentação detectada. Atualizando posição...')
+      const locationData = await fetchAllLocation(coords.lat, coords.lng)
+
+      if (locationData && locationData.city) {
+        await loadMap(locationData.city, coords.lat, coords.lng)
+      } else {
+        console.log('Usuário continua na mesma localização. Otimizando renderização.')
+      }
+    }
+  } catch (e) {
+    console.warn('Verificação de localização falhou ou negada.')
+  }
+}
+
 const setupMapEvents = () => {
   window.addEventListener('location-detected', handleLocationDetected)
   window.addEventListener('neighborhood-detected', handleDetected)
@@ -125,13 +151,19 @@ onMounted(async () => {
   setupMapEvents()
 
   const savedCity = localStorage.getItem('user-selected-city')
+  const savedLat = localStorage.getItem('user-lat')
+  const savedLng = localStorage.getItem('user-lng')
 
   if (savedCity) {
     mapStore.city = savedCity
   }
 
   if (mapStore.city && mapStore.city.trim() !== '') {
-    await loadMap(mapStore.city)
+    const lat = savedLat ? parseFloat(savedLat) : undefined
+    const lng = savedLng ? parseFloat(savedLng) : undefined
+
+    await loadMap(mapStore.city, lat, lng)
+    await checkUserLocation(lat, lng)
     return
   }
   showOptions.value = true

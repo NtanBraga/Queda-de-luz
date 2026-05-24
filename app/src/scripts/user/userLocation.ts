@@ -125,21 +125,17 @@ export const addUserLocationMarker = async (
       }),
     )
   }
-
-  if (google.maps.geometry.poly.containsLocation(userPos, cityPolygon)) {
-    new AdvancedMarkerElement({
-      map: map,
-      position: userPos,
-      content: locationData ? userLocationContainer(locationData.neighborhood) : undefined,
-      title: 'Sua Localização',
-      zIndex: 30,
-    })
-    window.dispatchEvent(
-      new CustomEvent('neighborhood-detected', {
-        detail: { name: locationData.neighborhood },
-      }),
-    )
-  } else {
-    console.log('Usuario localizado fora dos limites da cidade.')
-  }
+  
+  new AdvancedMarkerElement({
+    map: map,
+    position: userPos,
+    content: locationData ? userLocationContainer(locationData.neighborhood) : undefined,
+    title: 'Sua Localização',
+    zIndex: 30,
+  })
+  window.dispatchEvent(
+    new CustomEvent('neighborhood-detected', {
+      detail: { name: locationData.neighborhood },
+    }),
+  )
 }
