@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, ref } from 'vue'
-import { initMap } from '@/scripts/maps/map'
+import { initMap } from '@/scripts/maps/initMap'
 import {
   neighborhoodOutlines,
   clearAllPolygons,
@@ -8,13 +8,21 @@ import {
 } from '@/scripts/maps/neighborhoodMap'
 import { mapBuildStore } from '@/stores/map'
 import { powerOutageStore } from '@/stores/powerOutage'
+import { requestUserLocation, fetchAllLocation } from '@/scripts/maps/userLocation'
+import { getReports } from '@/scripts/user/reports'
+
+const DEFAULT_CITY = 'Porto Alegre'
+const CACHED_KEYS = {
+  CITY: 'user_selected_city',
+  LAT: 'user-lat',
+  LNG: 'user-lng',
+}
 
 const mapStore = mapBuildStore()
 const powerStore = powerOutageStore()
 
-const isMapReady = ref(false)
 
-import { getReports } from '@/scripts/user/reports'
+const isMapReady = ref(false)
 
 const loadReports = async () => {
   try {
@@ -25,7 +33,7 @@ const loadReports = async () => {
         (district: any) => district.district_Name,
       )
       powerStore.neighborhoodsNoPower = reportedNames
-     
+
       console.log(
         `Sincronizando dados: ${reportedNames.length} bairros reportados em ${mapStore.city}`,
       )
@@ -35,16 +43,31 @@ const loadReports = async () => {
   }
 }
 
-const loadMap = async () => {
+const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
   try {
     isMapReady.value = false
+
+    if (mapStore.neighborhoodsList.length === 0 || mapStore.city !== targetCity) {
+      mapStore.neighborhoodsList = await fetchAllNeighborhoods(targetCity)
+    }
+
+    mapStore.city = targetCity
+
+    localStorage.setItem(CACHED_KEYS.CITY, targetCity)
+    if (lat !== undefined && lng !== undefined) {
+      localStorage.setItem(CACHED_KEYS.LAT, lat.toString())
+      localStorage.setItem(CACHED_KEYS.LNG, lng.toString())
+    }
+
     const mapDiv = document.getElementById('map-canvas')
     if (mapDiv) mapDiv.innerHTML = ''
 
     mapStore.initiateMap = await initMap(
       'map-canvas',
-      mapStore.city,
+      targetCity,
       powerStore.neighborhoodsNoPower,
+      lat,
+      lng,
     )
 
     await loadReports()
@@ -52,7 +75,7 @@ const loadMap = async () => {
     isMapReady.value = true
     console.log(`Mapa de ${mapStore.city} foi carregado com sucesso.`)
   } catch (e) {
-    console.error('Errp ao carregar o mapa: ', e)
+    console.error('Erro ao carregar o mapa: ', e)
     isMapReady.value = true
   }
 }
@@ -71,24 +94,12 @@ watch(
   { deep: true },
 )
 
+// Se verificado uma cidade nova, ele é redirecionado
 const handleLocationDetected = async (e: any) => {
   const { neighborhood, city: newCity } = e.detail
 
-  const strictCity = mapStore.city !== ''
-
-  if (!strictCity && newCity && newCity !== mapStore.city) {
-    console.warn(`Mudança de cidade: ${mapStore.city} -> ${newCity}`)
-    mapStore.city = newCity
-
-    mapStore.neighborhoodsList = await fetchAllNeighborhoods(newCity)
-
-    await loadMap()
-  } else if (strictCity) {
-    if (newCity === mapStore.city) {
-      mapStore.detectLocation = neighborhood
-    } else {
-      mapStore.detectLocation = 'Fora de area'
-    }
+  if (newCity === mapStore.city) {
+    mapStore.detectLocation = neighborhood
   }
 }
 
@@ -115,14 +126,50 @@ const setupMapEvents = () => {
     mapStore.isSearching = true
   })
 }
+const checkUserLocation = async (cachedLat?: number, cachedLng?: number) => {
+  try {
+    const coords = await requestUserLocation()
+
+    const isNewLocation =
+      !cachedLat ||
+      !cachedLng ||
+      coords.lat.toFixed(3) !== cachedLat.toFixed(3) ||
+      coords.lng.toFixed(3) !== cachedLng.toFixed(3)
+
+    if (isNewLocation) {
+      console.log('Movimentação detectada. Atualizando posição...')
+      const locationData = await fetchAllLocation(coords.lat, coords.lng)
+
+      if (locationData && locationData.city) {
+        await loadMap(locationData.city, coords.lat, coords.lng)
+      }
+    } else {
+      console.log('Usuário continua na mesma localização. Otimizando renderização.')
+    }
+  } catch (e) {
+    console.warn('Verificação de localização falhou ou negada.')
+  }
+}
 
 onMounted(async () => {
   setupMapEvents()
 
-  if (mapStore.neighborhoodsList.length === 0) {
-    mapStore.neighborhoodsList = await fetchAllNeighborhoods(mapStore.city)
+  const savedCity = localStorage.getItem(CACHED_KEYS.CITY)
+  const savedLat = localStorage.getItem(CACHED_KEYS.LAT)
+  const savedLng = localStorage.getItem(CACHED_KEYS.LNG)
+
+   if (savedCity) {
+    mapStore.city = savedCity
   }
-  await loadMap()
+
+  if (mapStore.city && mapStore.city.trim() !== '') {
+    const lat = savedLat ? parseFloat(savedLat) : undefined
+    const lng = savedLng ? parseFloat(savedLng) : undefined
+
+    await loadMap(mapStore.city, lat, lng)
+    await checkUserLocation(lat, lng)
+    return
+  }
 })
 
 onUnmounted(() => {

@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import type { NeighborhoodInfo } from '@/scripts/maps/neighborhoodMap'
 
 export const mapBuildStore = defineStore('map', () => {
-  const city = ref('Porto Alegre')
+  const city = ref('Alvorada')
   const neighborhoodsList = ref<NeighborhoodInfo[]>([])
   const initiateMap = ref<google.maps.Map | undefined>(undefined)
   const detectLocation = ref<string>('')

@@ -1,0 +1,148 @@
+//Funções de gerenciamento de parametros da cidade
+
+import { cacheManager } from '../utils/cacheManager'
+import { safeFetch } from '../utils/clientApi'
+
+interface UserLocation {
+  city: string
+  neighborhood: string
+}
+
+export const requestUserLocation = (): Promise<{ lat: number; lng: number }> => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocalização não suportada pelo navegador.'))
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position: GeolocationPosition) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        })
+      },
+      (error) => {
+        if (error.code === 1) {
+          console.error('Usuário recusou o pedido de Geolocalização.')
+        } else if (error.code === 3) {
+          console.error('O pedido demorou demais.')
+        }
+        reject(error)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    )
+  })
+}
+
+export const fetchAllLocation = async (lat: number, lng: number) => {
+  const fixedLat = lat.toFixed(4)
+  const fixedLng = lng.toFixed(4)
+
+  const cacheLocation = `location-${fixedLat}-${fixedLng}`
+
+  try {
+    const cached = cacheManager.get<{ city: string; neighborhood: string }>(cacheLocation)
+    if (cached) return cached
+  } catch (e) {
+    console.warn('Erro ao pegar cache das bordas de bairro')
+  }
+
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
+
+  try {
+    const response = await safeFetch(url)
+    const data = await response.json()
+
+    if (!data || !data.address) {
+      throw new Error('Endereço não encontrado pelo geocodificador.')
+    }
+
+    const locationData: UserLocation = {
+      city: data.address.city || data.address.town || data.address.village || '',
+      neighborhood:
+        data.address.suburb ||
+        data.address.neighborhood ||
+        data.address.quarter ||
+        data.address.city_district ||
+        '',
+    }
+
+    if (locationData.city || locationData.neighborhood) {
+      cacheManager.set(cacheLocation, locationData, 2)
+    }
+
+    return locationData
+  } catch (e) {
+    console.error('Erro ao capturar geolocalização:', e)
+    return null
+  }
+}
+
+const userLocationContainer = (neighborhoodName: string) => {
+  const container = document.createElement('div')
+  container.className = 'user-location-container'
+
+  const balloon = document.createElement('div')
+  balloon.className = 'user-location-balloon'
+  balloon.textContent = `Você está em: ${neighborhoodName}`
+
+  const dot = document.createElement('div')
+  dot.className = 'user-location-dot'
+
+  const pulse = document.createElement('div')
+  pulse.className = 'user-location-pulse'
+
+  container.appendChild(balloon)
+  container.appendChild(pulse)
+  container.appendChild(dot)
+
+  return container
+}
+
+export const addUserLocationMarker = async (
+  map: google.maps.Map,
+  targetCity: string,
+  lat: number,
+  lng: number,
+) => {
+  try{
+    const { AdvancedMarkerElement } = (await google.maps.importLibrary(
+      'marker',
+    )) as google.maps.MarkerLibrary
+
+    const userPos = new google.maps.LatLng(lat, lng)
+
+    const locationData = await fetchAllLocation(userPos.lat(), userPos.lng())
+
+    if (!locationData || !locationData.city?.trim()) {
+      console.warn('Não foi possivel carregar os dados de localização para o marcador')
+      return
+    }
+
+    if (locationData.city.toLowerCase().trim() !== targetCity.toLowerCase().trim()) {
+      console.warn(`Usuário localizado em ${locationData.city}. Marcador foi ocultado.`)
+      return
+    }
+
+    window.dispatchEvent(
+      new CustomEvent('location-detected', {
+        detail: { city: locationData.city, neighborhood: locationData.neighborhood },
+      }),
+    )
+
+    new AdvancedMarkerElement({
+      map: map,
+      position: userPos,
+      content: locationData ? userLocationContainer(locationData.neighborhood) : undefined,
+      title: 'Sua Localização',
+      zIndex: 30,
+    })
+    window.dispatchEvent(
+      new CustomEvent('neighborhood-detected', {
+        detail: { name: locationData.neighborhood },
+      }),
+    )
+  }catch(error){
+    console.error('Erro ao adicionar marcador no mapa:', error)
+  }
+}

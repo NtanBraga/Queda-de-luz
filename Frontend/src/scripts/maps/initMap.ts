@@ -1,11 +1,25 @@
 /// <reference types="google.maps" />
 import { createCityMask, fetchCityBounds, fetchCityOutline } from './cityMap'
 import { findNeighborhoodCoords, neighborhoodOutlines } from './neighborhoodMap'
-import { addUserlocationMarker, fetchAllLocation } from '../user/userLocation'
+import { addUserLocationMarker, fetchAllLocation } from './userLocation'
 
 //Funções para inicialização e customização do mapa
 
-export async function initMap(elementId: string, city: string, neighborhoods: string[]) {
+const dispatchNeighborhoodClick = (name: string, cityToDispatch: string) => {
+  window.dispatchEvent(
+    new CustomEvent('map-neighborhood-clicked', {
+      detail: { name, city: cityToDispatch },
+    }),
+  )
+}
+
+export async function initMap(
+  elementId: string,
+  city: string,
+  neighborhoods: string[],
+  userLat?: number,
+  userLng?: number,
+) {
   const { Map } = (await google.maps.importLibrary('maps')) as google.maps.MapsLibrary
 
   await google.maps.importLibrary('geometry')
@@ -39,11 +53,7 @@ export async function initMap(elementId: string, city: string, neighborhoods: st
         const localNeighborhood = findNeighborhoodCoords(e.latLng)
 
         if (localNeighborhood) {
-          window.dispatchEvent(
-            new CustomEvent('map-neighborhood-clicked', {
-              detail: { name: localNeighborhood, city: city },
-            }),
-          )
+          dispatchNeighborhoodClick(localNeighborhood, city)
           return
         }
 
@@ -55,18 +65,11 @@ export async function initMap(elementId: string, city: string, neighborhoods: st
         try {
           const neighborhoodClicked = await fetchAllLocation(lat, lng)
 
-          window.dispatchEvent(
-            new CustomEvent('map-neighborhood-clicked', {
-              detail: { name: neighborhoodClicked?.neighborhood, city: neighborhoodClicked?.city },
-            }),
-          )
+          dispatchNeighborhoodClick(neighborhoodClicked?.neighborhood!, neighborhoodClicked?.city!)
         } catch (e) {
           console.error('Erro ao buscar localidade com clique: ', e)
-          window.dispatchEvent(
-            new CustomEvent('map-neighborhood-clicked', {
-              detail: { name: 'Fora de area.', city: city },
-            }),
-          )
+
+          dispatchNeighborhoodClick('Fora de area.', city)
         }
       }
     })
@@ -75,7 +78,11 @@ export async function initMap(elementId: string, city: string, neighborhoods: st
 
     await neighborhoodOutlines(mapOutput, neighborhoods, city)
 
-    await addUserlocationMarker(mapOutput, outlineCity)
+    if (userLat !== undefined && userLng !== undefined) {
+      addUserLocationMarker(mapOutput, city, userLat, userLng).catch(error =>{
+        console.warn('Falha ao adicionar marcador de usuário: ', error)
+      })
+    }
 
     return mapOutput
   }
