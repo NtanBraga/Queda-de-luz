@@ -21,7 +21,6 @@ const CACHED_KEYS = {
 const mapStore = mapBuildStore()
 const powerStore = powerOutageStore()
 
-
 const isMapReady = ref(false)
 
 const loadReports = async () => {
@@ -158,7 +157,7 @@ onMounted(async () => {
   const savedLat = localStorage.getItem(CACHED_KEYS.LAT)
   const savedLng = localStorage.getItem(CACHED_KEYS.LNG)
 
-   if (savedCity) {
+  if (savedCity) {
     mapStore.city = savedCity
   }
 

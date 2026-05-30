@@ -4,8 +4,15 @@ from lxml import html
 import unicodedata
 import json
 from datetime import datetime
+import os
+import time
 
+CORRECOES_CEEE = {
+    "TRES FIQUEIRAS": "TRES FIGUEIRAS",
+    "SAO JOSE": "VILA SAO JOSE",
+}
 
+ARQUIVO_ESTADO = "estado_quedas.json"
 
 def collectFromCEEE(httpClient):
     print("Acessando site para monitoramento...")
@@ -52,12 +59,36 @@ def collectFromCEEE(httpClient):
         return []
     
 def normalizar_nome(nome):
+
+    if ' - ' in nome:
+        nome = nome.split(' - ')[0]
+    elif ' -' in nome:
+        nome = nome.split(' -')[0]
+    elif '- ' in nome:
+        nome = nome.split('- ')[0]
+    elif '-' in nome:
+        nome = nome.split('-')[0]
+
     nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('utf-8')
     nome = nome.replace('-', ' ')
     return nome.strip().upper()
 
 def mapear_bairros(cidade, httpClient):
     print(f"Mapeando ids da cidade ${cidade} para Overpass...")
+
+    pastaDados = "Cidade_Dicionario_Bairros"
+    if not os.path.exists(pastaDados):
+        os.makedirs(pastaDados)
+        print(f"Pasta {pastaDados} foi criada.")
+    
+    nomeArquivo = f"bairros_{cidade.replace(' ', '_').lower()}.json"
+    caminhoArquivo = os.path.join(pastaDados, nomeArquivo)
+
+    if os.path.exists(caminhoArquivo):
+        print(f"Carregando dicionario de bairros pelo arquivo: {nomeArquivo}")
+        with open(caminhoArquivo, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    print(f"Arquivo inexistente. Fazendo download pelo Overpass...")
 
     query = f"""
     [out:json];
@@ -83,6 +114,10 @@ def mapear_bairros(cidade, httpClient):
                 if nome:
                     nome_limpo = normalizar_nome(nome)
                     mapa_bairros[nome_limpo] = el["id"]
+        if mapa_bairros:
+            with open(caminhoArquivo, "w", encoding="utf-8") as f:
+                json.dump(mapa_bairros, f, ensure_ascii=False, indent=4)
+            print(f"Download concluido! Dicionario salvo em: {caminhoArquivo}")
         return mapa_bairros
     except Exception as e:
         print(f"Erro ao buscar ID no Overpass: {e}")
@@ -100,14 +135,14 @@ def exportarJson(novosDados):
         json.dump(novosDados, f, indent=4, ensure_ascii=False)
     print(f"Novo arquivo criado: {novoArquivo}")
 
-def enviarParaAPI(district_id, httpclient):
+def enviarParaAPI(district_id, httpclient, Is_Fixed=False):
     
     API_URL = "http://localhost:5176/homepage/cities/1"
     url = f"{API_URL}/districts/{district_id}/reports"
 
 
     payload = {
-        "Is_Fixed": False,
+        "Is_Fixed": Is_Fixed,
         "Problem_Category_id": 1
     }
 
@@ -119,10 +154,24 @@ def enviarParaAPI(district_id, httpclient):
 
     try:
         r = httpclient.request('POST', url, body=dados_json, headers=headers)
-        print(f"{r.status}. Reportado o bairro {district_id}")
+        statusMsg = "Luz voltou." if Is_Fixed else "Falta de luz reportada"
+        
+        if r.status in [200, 201]:
+            print(f"{r.status}. {statusMsg} o bairro {district_id}")
+        else:
+            print(f"Erro ao enviar status do bairro {district_id}")
     except Exception as e:
         print(f"Erro de conexão com o bando de dados: {e}")
 
+def carregarEstadoAnterior():
+    if os.path.exists(ARQUIVO_ESTADO):
+        with open(ARQUIVO_ESTADO, 'r', encoding='utf-8') as f:
+            return set(json.load(f))
+    return set()
+
+def salvarEstadoAtual(quedasAtuais):
+    with open(ARQUIVO_ESTADO, 'w', encoding='utf-8') as f:
+        json.dump(list(quedasAtuais), f)
 
 def main():
     http = urllib3.PoolManager()
@@ -134,23 +183,43 @@ def main():
         print("Falha ao carregar dicionario de bairros.")
         return
 
+    quedasAnteriores = carregarEstadoAnterior()
+    quedasAtuais = set()
+
     dadosColetados = collectFromCEEE(http)
 
     for queda in dadosColetados:
         nome_limpo = normalizar_nome(queda["bairro"])
 
+        if nome_limpo in CORRECOES_CEEE:
+            nome_limpo = CORRECOES_CEEE[nome_limpo]
+
         district_id = dicionario_bairros.get(nome_limpo)
 
         if district_id:
-            print(f"Reportando: {queda['bairro']} -> ID {district_id}")
-            enviarParaAPI(district_id, http)
+            quedasAtuais.add(district_id)
         else:
             print(f"Aviso: Bairro {queda['bairro']} não foi encontrado no dicionario!")
 
-    
+
+    bairrosResolvidos = quedasAnteriores - quedasAtuais
+    for resolvedId in bairrosResolvidos:
+        enviarParaAPI(resolvedId, http, Is_Fixed=True)
+
+    novasQuedas = quedasAtuais - quedasAnteriores
+    for brokenId in novasQuedas:
+        enviarParaAPI(brokenId, http, Is_Fixed=False)
+
+    salvarEstadoAtual(quedasAtuais)
     exportarJson(dadosColetados)
 
 if __name__ == "__main__":
-    main()
-
+    #Colocar no agendador de tarefas depois.
+    while True:
+        try:
+            print(f"\n Nova varredura: {datetime.now().strftime('%H:%M:%S')}")
+            main()
+        except Exception as e:
+            print(f"Erro fatal durante a varredura:{e}")
+        time.sleep(30)
 

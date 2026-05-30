@@ -79,7 +79,7 @@ export async function initMap(
     await neighborhoodOutlines(mapOutput, neighborhoods, city)
 
     if (userLat !== undefined && userLng !== undefined) {
-      addUserLocationMarker(mapOutput, city, userLat, userLng).catch(error =>{
+      addUserLocationMarker(mapOutput, city, userLat, userLng).catch((error) => {
         console.warn('Falha ao adicionar marcador de usuário: ', error)
       })
     }

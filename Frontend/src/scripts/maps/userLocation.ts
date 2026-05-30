@@ -105,7 +105,7 @@ export const addUserLocationMarker = async (
   lat: number,
   lng: number,
 ) => {
-  try{
+  try {
     const { AdvancedMarkerElement } = (await google.maps.importLibrary(
       'marker',
     )) as google.maps.MarkerLibrary
@@ -142,7 +142,7 @@ export const addUserLocationMarker = async (
         detail: { name: locationData.neighborhood },
       }),
     )
-  }catch(error){
+  } catch (error) {
     console.error('Erro ao adicionar marcador no mapa:', error)
   }
 }
