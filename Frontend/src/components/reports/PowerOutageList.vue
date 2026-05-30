@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { powerOutageStore } from '@/stores/powerOutage'
 
 const powerStore = powerOutageStore()
@@ -26,6 +25,10 @@ const openMenu = defineModel<boolean>('openMenu', { default: true })
         class="lista-items-bairros-sem-luz status-alert"
       >
         <strong>{{ n }}</strong>
+        <span class="lista-items-bairros-sem-luz-report-badge" v-if="powerStore.reportCount[n]">
+          {{ powerStore.reportCount[n] }}
+          {{ powerStore.reportCount[n] > 1 ? 'reportes' : 'reporte' }}
+        </span>
       </li>
     </ul>
   </div>

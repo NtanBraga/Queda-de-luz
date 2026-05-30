@@ -5,10 +5,14 @@ export const powerOutageStore = defineStore('powerOutage', () => {
   const neighborhoodsNoPower = ref<string[]>([])
   const stillNoPower = ref<string[]>([])
   const currentResolveIndex = ref(0)
+  const reportCount = ref<Record<string, number>>({})
 
   const doReport = (neighborhood: string) => {
     if (!neighborhoodsNoPower.value.includes(neighborhood)) {
       neighborhoodsNoPower.value.push(neighborhood)
+      reportCount.value[neighborhood] = 1
+    } else {
+      reportCount.value[neighborhood] = (reportCount.value[neighborhood] || 1) + 1
     }
     if (!stillNoPower.value.includes(neighborhood)) {
       setTimeout(() => {
@@ -26,6 +30,7 @@ export const powerOutageStore = defineStore('powerOutage', () => {
 
     const globalIndex = neighborhoodsNoPower.value.indexOf(districtName)
     if (globalIndex !== -1) neighborhoodsNoPower.value.splice(globalIndex, 1)
+    delete reportCount.value[districtName]
 
     if (currentResolveIndex.value >= stillNoPower.value.length) {
       currentResolveIndex.value = Math.max(0, stillNoPower.value.length - 1)
@@ -42,6 +47,7 @@ export const powerOutageStore = defineStore('powerOutage', () => {
     neighborhoodsNoPower,
     stillNoPower,
     currentResolveIndex,
+    reportCount,
     doReport,
     fixIndexResolve,
     nextResolve,

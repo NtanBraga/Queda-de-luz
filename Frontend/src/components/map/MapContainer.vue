@@ -11,7 +11,6 @@ import { powerOutageStore } from '@/stores/powerOutage'
 import { requestUserLocation, fetchAllLocation } from '@/scripts/maps/userLocation'
 import { getReports } from '@/scripts/user/reports'
 
-const DEFAULT_CITY = 'Porto Alegre'
 const CACHED_KEYS = {
   CITY: 'user_selected_city',
   LAT: 'user-lat',
@@ -27,11 +26,28 @@ const loadReports = async () => {
   try {
     const data = await getReports()
 
+    console.log('DADOS CRUS DA API (GET):', data)
+
     if (data && data.districts_Data) {
-      const reportedNames = Object.values(data.districts_Data).map(
-        (district: any) => district.district_Name,
-      )
+      const reportedNames: string[] = []
+      const counts: Record<string, number> = {}
+
+      Object.values(data.districts_Data).forEach((district: any) => {
+        const districtName = district.district_Name
+
+        const statistic = district.district_Statistics
+
+        if (statistic && Array.isArray(statistic)) {
+          const powerOutageStat = statistic.find((stat: any) => stat.problem_Category_Id === 1)
+
+          if (powerOutageStat && powerOutageStat.reported_Amount > 0) {
+            reportedNames.push(districtName)
+            counts[districtName] = powerOutageStat.reported_Amount
+          }
+        }
+      })
       powerStore.neighborhoodsNoPower = reportedNames
+      powerStore.reportCount = counts
 
       console.log(
         `Sincronizando dados: ${reportedNames.length} bairros reportados em ${mapStore.city}`,
