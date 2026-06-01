@@ -1,15 +1,23 @@
 import urllib3
 import urllib.parse
-from lxml import html
 import unicodedata
 import json
 from datetime import datetime
 import os
 import time
+import re
 
 CORRECOES_CEEE = {
     "TRES FIQUEIRAS": "TRES FIGUEIRAS",
     "SAO JOSE": "VILA SAO JOSE",
+    "CENTRO": "CENTRO HISTRICO",
+    "M. DE VENTO": "MOINHOS DE VENTO",
+    "M DE VENTO": "MOINHOS DE VENTO",
+    "SANTA TERESA": "SANTA TEREZA",
+    "APARICIO BORGES": "CORONEL APARICIO BORGES",
+    "ABERTA MORROS": "ABERTA DOS MORROS",
+    "JARDIM ITU SABARA": "JARDIM ITU",
+    "PROTASIO ALVES": "MORRO SANTANA"
 }
 
 ARQUIVO_ESTADO = "estado_quedas.json"
@@ -60,15 +68,10 @@ def collectFromCEEE(httpClient):
     
 def normalizar_nome(nome):
 
-    if ' - ' in nome:
-        nome = nome.split(' - ')[0]
-    elif ' -' in nome:
-        nome = nome.split(' -')[0]
-    elif '- ' in nome:
-        nome = nome.split('- ')[0]
-    elif '-' in nome:
-        nome = nome.split('-')[0]
-
+    if not nome:
+        return ""
+    
+    nome = re.sub(r'\(.*?\)', '', nome)
     nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('utf-8')
     nome = nome.replace('-', ' ')
     return nome.strip().upper()
@@ -189,17 +192,30 @@ def main():
     dadosColetados = collectFromCEEE(http)
 
     for queda in dadosColetados:
-        nome_limpo = normalizar_nome(queda["bairro"])
 
-        if nome_limpo in CORRECOES_CEEE:
-            nome_limpo = CORRECOES_CEEE[nome_limpo]
+        bairros_separados = [b.strip() for b in queda["bairro"].split('/') if b.strip()]
 
-        district_id = dicionario_bairros.get(nome_limpo)
+        for bairro_bruto in bairros_separados:
 
-        if district_id:
-            quedasAtuais.add(district_id)
-        else:
-            print(f"Aviso: Bairro {queda['bairro']} não foi encontrado no dicionario!")
+            nome_limpo = normalizar_nome(bairro_bruto)
+            district_id = None
+
+            if nome_limpo in CORRECOES_CEEE:
+                nome_limpo = CORRECOES_CEEE[nome_limpo]
+
+            if nome_limpo in dicionario_bairros:
+                district_id = dicionario_bairros.get(nome_limpo)
+
+            if not district_id:
+                for b_json, d_id in dicionario_bairros.items():
+                    if b_json in nome_limpo:
+                        district_id = d_id
+                        break
+
+            if district_id:
+                quedasAtuais.add(district_id)
+            else:
+                print(f"Aviso: Bairro {bairro_bruto} não foi encontrado no dicionario!")
 
 
     bairrosResolvidos = quedasAnteriores - quedasAtuais
