@@ -8,12 +8,14 @@ export const powerOutageStore = defineStore('powerOutage', () => {
   const reportCount = ref<Record<string, number>>({})
 
   const doReport = (neighborhood: string) => {
-    if (!neighborhoodsNoPower.value.includes(neighborhood)) {
-      neighborhoodsNoPower.value.push(neighborhood)
-      reportCount.value[neighborhood] = 1
-    } else {
-      reportCount.value[neighborhood] = (reportCount.value[neighborhood] || 1) + 1
+    reportCount.value[neighborhood] = (reportCount.value[neighborhood] || 0) + 1
+
+    if (reportCount.value[neighborhood] >= 3) {
+      if (!neighborhoodsNoPower.value.includes(neighborhood)) {
+        neighborhoodsNoPower.value.push(neighborhood)
+      }
     }
+
     if (!stillNoPower.value.includes(neighborhood)) {
       setTimeout(() => {
         stillNoPower.value.push(neighborhood)

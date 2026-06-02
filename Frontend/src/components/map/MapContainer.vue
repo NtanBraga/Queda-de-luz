@@ -40,9 +40,12 @@ const loadReports = async () => {
         if (statistic && Array.isArray(statistic)) {
           const powerOutageStat = statistic.find((stat: any) => stat.problem_Category_Id === 1)
 
-          if (powerOutageStat && powerOutageStat.reported_Amount > 0) {
-            reportedNames.push(districtName)
-            counts[districtName] = powerOutageStat.reported_Amount
+          if (powerOutageStat) {
+            const amount = powerOutageStat.reported_Amount || 0
+            if (amount >= 3) {
+              reportedNames.push(districtName)
+              counts[districtName] = amount
+            }
           }
         }
       })
