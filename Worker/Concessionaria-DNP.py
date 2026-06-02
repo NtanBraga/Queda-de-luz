@@ -6,11 +6,12 @@ from datetime import datetime
 import os
 import time
 import re
+import difflib
 
 CORRECOES_CEEE = {
     "TRES FIQUEIRAS": "TRES FIGUEIRAS",
     "SAO JOSE": "VILA SAO JOSE",
-    "CENTRO": "CENTRO HISTRICO",
+    "CENTRO": "CENTRO HISTORICO",
     "M. DE VENTO": "MOINHOS DE VENTO",
     "M DE VENTO": "MOINHOS DE VENTO",
     "SANTA TERESA": "SANTA TEREZA",
@@ -73,8 +74,50 @@ def normalizar_nome(nome):
     
     nome = re.sub(r'\(.*?\)', '', nome)
     nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('utf-8')
-    nome = nome.replace('-', ' ')
-    return nome.strip().upper()
+    nome = nome.replace('-', ' ').replace('.', ' ')
+    nome = ' '.join(nome.split()).upper()
+
+    abreviacoes = {
+        r'\bSTA\b': 'SANTA',
+        r'\bSTO\b': 'SANTO',
+        r'\bSRA\b': 'SENHORA',
+        r'\bJD\b': 'JARDIM',
+        r'\bVIL\b': 'VILA',
+        r'\bCONJ\b': 'CONJUNTO',
+        r'\bLOT\b': 'LOTEAMENTO'
+    }
+
+    for abrev, completo in abreviacoes.items():
+        nome = re.sub(abrev, completo, nome)
+
+    return nome.strip()
+
+def motor_bairro_nome(nome_sujo, dicionario_bairro):
+    nome_limpo = normalizar_nome(nome_sujo)
+
+    if nome_limpo in dicionario_bairro:
+        return dicionario_bairro[nome_limpo], nome_limpo
+    
+    if nome_limpo in CORRECOES_CEEE:
+        nome_corrigido = CORRECOES_CEEE[nome_limpo]
+        if nome_corrigido in dicionario_bairro:
+            return dicionario_bairro[nome_corrigido], nome_corrigido
+        
+    for erro, correcao in CORRECOES_CEEE.items():
+        if erro in nome_limpo:
+            if correcao in dicionario_bairro:
+                return dicionario_bairro[correcao], correcao
+            
+    nome_oficiais = list(dicionario_bairro.keys())
+    matches = difflib.get_close_matches(nome_limpo, nome_oficiais, n=1, cutoff=0.75)
+    if matches:
+        return dicionario_bairro[matches[0]], matches[0]
+    
+    for bairros_osm, d_id in dicionario_bairro.items():
+        if bairros_osm in nome_limpo:
+            return d_id, bairros_osm
+    
+    return None, nome_limpo
 
 def mapear_bairros(cidade, httpClient):
     print(f"Mapeando ids da cidade ${cidade} para Overpass...")
@@ -169,12 +212,12 @@ def enviarParaAPI(district_id, httpclient, Is_Fixed=False):
 def carregarEstadoAnterior():
     if os.path.exists(ARQUIVO_ESTADO):
         with open(ARQUIVO_ESTADO, 'r', encoding='utf-8') as f:
-            return set(json.load(f))
-    return set()
+            return json.load(f)
+    return {}
 
 def salvarEstadoAtual(quedasAtuais):
     with open(ARQUIVO_ESTADO, 'w', encoding='utf-8') as f:
-        json.dump(list(quedasAtuais), f)
+        json.dump(list(quedasAtuais), f, indent=4)
 
 def main():
     http = urllib3.PoolManager()
@@ -187,7 +230,7 @@ def main():
         return
 
     quedasAnteriores = carregarEstadoAnterior()
-    quedasAtuais = set()
+    quedasAtuais = {}
 
     dadosColetados = collectFromCEEE(http)
 
@@ -197,34 +240,29 @@ def main():
 
         for bairro_bruto in bairros_separados:
 
-            nome_limpo = normalizar_nome(bairro_bruto)
-            district_id = None
-
-            if nome_limpo in CORRECOES_CEEE:
-                nome_limpo = CORRECOES_CEEE[nome_limpo]
-
-            if nome_limpo in dicionario_bairros:
-                district_id = dicionario_bairros.get(nome_limpo)
-
-            if not district_id:
-                for b_json, d_id in dicionario_bairros.items():
-                    if b_json in nome_limpo:
-                        district_id = d_id
-                        break
+            district_id, nome_oficial = motor_bairro_nome(bairro_bruto, dicionario_bairros)
 
             if district_id:
-                quedasAtuais.add(district_id)
+                district_id_string = str(district_id)
+                quedasAtuais[district_id_string] = quedasAtuais.get(district_id_string, 0) + 1
             else:
-                print(f"Aviso: Bairro {bairro_bruto} não foi encontrado no dicionario!")
+                print(f"Aviso: Bairro {bairro_bruto} (Limpo {nome_oficial}) não foi encontrado no dicionario!")
 
 
-    bairrosResolvidos = quedasAnteriores - quedasAtuais
-    for resolvedId in bairrosResolvidos:
-        enviarParaAPI(resolvedId, http, Is_Fixed=True)
+    todos_ids = set(quedasAnteriores.keys()).union(set(quedasAtuais.keys()))
 
-    novasQuedas = quedasAtuais - quedasAnteriores
-    for brokenId in novasQuedas:
-        enviarParaAPI(brokenId, http, Is_Fixed=False)
+    for d_id in todos_ids:
+        qtd_antes = quedasAnteriores.get(d_id, 0)
+        qtd_agora = quedasAtuais.get(d_id, 0)
+
+        diferenca = qtd_agora - qtd_antes
+
+        if diferenca > 0:
+            for _ in range(diferenca):
+                enviarParaAPI(d_id, http, Is_Fixed=False)
+        elif diferenca < 0:
+            for _ in range(abs(diferenca)):
+                enviarParaAPI(d_id, http, Is_Fixed=True)
 
     salvarEstadoAtual(quedasAtuais)
     exportarJson(dadosColetados)
@@ -237,5 +275,5 @@ if __name__ == "__main__":
             main()
         except Exception as e:
             print(f"Erro fatal durante a varredura:{e}")
-        time.sleep(30)
+        time.sleep(60)
 
