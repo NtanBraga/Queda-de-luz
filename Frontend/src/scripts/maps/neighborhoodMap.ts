@@ -8,6 +8,7 @@ let polygonsCleaner: Map<string, google.maps.Polygon> = new Map()
 export interface NeighborhoodInfo {
   id: number
   name: string
+  type: string
 }
 
 export const clearAllPolygons = () => {
@@ -56,8 +57,9 @@ export const fetchAllNeighborhoods = async (cityName: string): Promise<Neighborh
       .map((el: any) => ({
         id: el.id,
         name: el.tags.name,
+        type: el.type === 'relation' ? 'R' : 'W',
       }))
-      .filter((n: NeighborhoodInfo) => n.name !== '')
+      .filter((n: NeighborhoodInfo) => n.name && n.name !== '')
 
     const sendNeighborhoods = [
       ...new Map<string, NeighborhoodInfo>(
@@ -75,43 +77,53 @@ export const fetchAllNeighborhoods = async (cityName: string): Promise<Neighborh
 }
 
 const fetchNeighborhoodOutline = async (
-  neighborhoodName: string,
-): Promise<google.maps.LatLngLiteral[][]> => {
-  const cacheOutlines = `outline-${neighborhoodName}`
-  try {
-    const cached = cacheManager.get<google.maps.LatLngLiteral[][]>(cacheOutlines)
-    if (cached) return cached
-  } catch (e) {
-    console.warn('Erro ao pegar cache das bordas de bairro')
-  }
+  neighborhoodToFetch: NeighborhoodInfo[],
+  cityName: string,
+): Promise<Map<string, google.maps.LatLngLiteral[][]>> => {
+  const results = new Map<string, google.maps.LatLngLiteral[][]>()
+  if (neighborhoodToFetch.length === 0) return results
 
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(neighborhoodName)}&format=json&polygon_geojson=1&limit=1`
+  const IdsNom = neighborhoodToFetch.map((n) => `${n.type}${n.id}`).join(',')
+
+  const url = `https://nominatim.openstreetmap.org/lookup?osm_ids=${IdsNom}&format=json&polygon_geojson=1&email=natanybraga@gmail.com`
 
   try {
-    const response = await safeFetch(url)
+    const response = await fetch(url)
     const data = await response.json()
 
-    if (!data.length || !data[0].geojson) return []
+    if (Array.isArray(data)) {
+      data.forEach((item: any) => {
+        const foundNeighborhood = neighborhoodToFetch.find((n) => n.id === item.osm_id)
+        if (!foundNeighborhood) return
+        const name = foundNeighborhood.name
 
-    const geojson = data[0].geojson
-    const paths: google.maps.LatLngLiteral[][] = []
+        if (!item.geojson) return
 
-    if (geojson.type === 'Polygon') {
-      geojson.coordinates.forEach((ring: any) => {
-        paths.push(ring.map(([lng, lat]: [number, number]) => ({ lat, lng })))
-      })
-    } else if (geojson.type === 'MultiPolygon') {
-      geojson.coordinates.forEach((polygon: any) => {
-        polygon.forEach((ring: any) => {
-          paths.push(ring.map(([lng, lat]: [number, number]) => ({ lat, lng })))
-        })
+        const geojson = item.geojson
+        const paths: google.maps.LatLngLiteral[][] = []
+
+        if (geojson.type === 'Polygon') {
+          geojson.coordinates.forEach((ring: any) => {
+            paths.push(ring.map(([lng, lat]: [number, number]) => ({ lat, lng })))
+          })
+        } else if (geojson.type === 'MultiPolygon') {
+          geojson.coordinates.forEach((polygon: any) => {
+            polygon.forEach((ring: any) => {
+              paths.push(ring.map(([lng, lat]: [number, number]) => ({ lat, lng })))
+            })
+          })
+        }
+        if (paths.length > 0) {
+          results.set(name, paths)
+
+          cacheManager.set(`outline-${name}-${cityName}`, paths, 7)
+        }
       })
     }
-    cacheManager.set(cacheOutlines, paths, 7)
-    return paths
+    return results
   } catch (e) {
-    console.error('Erro ao contornar cidade: ', e)
-    return []
+    console.error('Erro no Nominatim Lookup: ', e)
+    return results
   }
 }
 
@@ -130,22 +142,45 @@ export const neighborhoodOutlines = async (
     }
   }
 
-  const fetchPromises = neighborhoodNames
-    .filter((name) => !polygonsCleaner.has(name))
-    .map(async (name) => {
-      const fullSearchName = `${name}, ${cityName}`
-      return { name, paths: await fetchNeighborhoodOutline(fullSearchName) }
-    })
+  const allNeighborhoods = await fetchAllNeighborhoods(cityName)
 
-  const result = await Promise.all(fetchPromises)
+  const missingNeighborhoods: NeighborhoodInfo[] = []
+  const geometryToDraw = new Map<string, google.maps.LatLngLiteral[][]>()
+
+  neighborhoodNames.forEach((name) => {
+    if (polygonsCleaner.has(name)) return
+
+    const cached = cacheManager.get<google.maps.LatLngLiteral[][]>(`outline-${name}-${cityName}`)
+    if (cached) {
+      geometryToDraw.set(name, cached)
+    } else {
+      const bInfo = allNeighborhoods.find((n) => n.name === name)
+      if (bInfo) missingNeighborhoods.push(bInfo)
+    }
+  })
+
+  if (missingNeighborhoods.length > 0) {
+    //O Nominatim vai dividir em 50 blocos de bairros
+    for (let i = 0; i < missingNeighborhoods.length; i += 50) {
+      const chunk = missingNeighborhoods.slice(i, i + 50)
+      const lookupResults = await fetchNeighborhoodOutline(chunk, cityName)
+
+      lookupResults.forEach((paths, name) => {
+        geometryToDraw.set(name, paths)
+      })
+      if (i + 50 < missingNeighborhoods.length) {
+        await new Promise((resolve) => setTimeout(resolve, 1200))
+      }
+    }
+  }
 
   const allBounds = new google.maps.LatLngBounds()
+  let addedNewPolygon = false
 
   //Criar parametros para implementar funcionalidade de desligamento programado
   //EX: func(Local, programado, não-programado) -> valores podendo ser nulos
 
-  result.forEach(({ name, paths }) => {
-    if (paths.length <= 0) return
+  geometryToDraw.forEach((paths, name) => {
     if (paths.length > 0) {
       const polygon = new google.maps.Polygon({
         paths: paths,
@@ -167,6 +202,7 @@ export const neighborhoodOutlines = async (
       })
 
       polygonsCleaner.set(name, polygon)
+      addedNewPolygon = true
 
       paths.forEach((path) => {
         path.forEach((point) => allBounds.extend(point))
@@ -174,7 +210,7 @@ export const neighborhoodOutlines = async (
     }
   })
 
-  if (polygonsCleaner.size > 0 && fixedCamera) {
+  if (addedNewPolygon && fixedCamera) {
     map.fitBounds(allBounds, 50)
   }
 }
