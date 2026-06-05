@@ -116,10 +116,19 @@ def gerenciarAgendamentos(agendamentos):
         except Exception as e:
             pass
 
+    diretorioFuturo = os.path.dirname(ARQUIVO_AGENDADOS)
+    if not os.path.exists(diretorioFuturo):
+        os.makedirs(diretorioFuturo, exist_ok=True)
+
     with open(ARQUIVO_AGENDADOS, "w", encoding="utf-8") as f:
         json.dump(agendamentosRetidos, f, ensure_ascii=False, indent=4)
+
+
+    diretorioAgendado = os.path.dirname(ARQUIVO_AGENDADOS)
+    if not os.path.exists(diretorioAgendado):
+        os.makedirs(diretorioAgendado, exist_ok=True)
     with open(ARQUIVO_ENVIAR_FRONTEND, "w", encoding="utf-8") as f:
-        json.dump(list(bairrosManutencaoAgora), f, ensure_ascii=False)
+        json.dump(list(bairrosManutencaoAgora), f, ensure_ascii=False, indent=4)
     
     return agendamentosRetidos
 

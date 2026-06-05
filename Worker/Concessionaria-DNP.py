@@ -212,12 +212,15 @@ def enviarParaAPI(district_id, httpclient, Is_Fixed=False):
 def carregarEstadoAnterior():
     if os.path.exists(ARQUIVO_ESTADO):
         with open(ARQUIVO_ESTADO, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            dados = json.load(f)
+
+            if isinstance(dados, dict):
+                return dados
     return {}
 
 def salvarEstadoAtual(quedasAtuais):
     with open(ARQUIVO_ESTADO, 'w', encoding='utf-8') as f:
-        json.dump(list(quedasAtuais), f, indent=4)
+        json.dump(quedasAtuais, f, indent=4)
 
 def main():
     http = urllib3.PoolManager()
