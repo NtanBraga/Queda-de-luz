@@ -127,13 +127,28 @@ const fetchNeighborhoodOutline = async (
   }
 }
 
+const normalizerStr = (string: string) => {
+  if (!string) return ''
+  return string.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase().trim()
+}
+
 export const neighborhoodOutlines = async (
   map: google.maps.Map,
-  neighborhoodNames: string[],
+  emergencyNames: string[],
+  scheduledNames: string[],
   cityName: string,
   fixedCamera: boolean = true,
 ): Promise<void> => {
-  const currentNameSet = new Set(neighborhoodNames)
+  
+  const allNeighborhoods = await fetchAllNeighborhoods(cityName)
+
+  const realScheduledNames = scheduledNames.map(scheduledNames => {
+    const found = allNeighborhoods.find(n => normalizerStr(n.name) === normalizerStr(scheduledNames))
+    return found ? found.name : scheduledNames
+  })
+
+  const allActiveNames = [...new Set([...emergencyNames, ...realScheduledNames])]
+  const currentNameSet = new Set(allActiveNames)
 
   for (const [name, polygon] of polygonsCleaner.entries()) {
     if (!currentNameSet.has(name)) {
@@ -142,12 +157,10 @@ export const neighborhoodOutlines = async (
     }
   }
 
-  const allNeighborhoods = await fetchAllNeighborhoods(cityName)
-
   const missingNeighborhoods: NeighborhoodInfo[] = []
   const geometryToDraw = new Map<string, google.maps.LatLngLiteral[][]>()
 
-  neighborhoodNames.forEach((name) => {
+  allActiveNames.forEach((name) => {
     if (polygonsCleaner.has(name)) return
 
     const cached = cacheManager.get<google.maps.LatLngLiteral[][]>(`outline-${name}-${cityName}`)
@@ -182,15 +195,26 @@ export const neighborhoodOutlines = async (
 
   geometryToDraw.forEach((paths, name) => {
     if (paths.length > 0) {
+      //Programado
+      let fillColor = '#FFD700'
+      let strokeColor = '#FFA500'
+
+      const isEmergency = emergencyNames.some(e => normalizerStr(e) === normalizerStr(name))
+
+      if (isEmergency) {
+        fillColor = '#FF4500'
+        strokeColor = '#8B0000'
+      }
+
       const polygon = new google.maps.Polygon({
         paths: paths,
-        strokeColor: '#FF4500',
+        strokeColor: strokeColor,
         strokeOpacity: 0.5,
         strokeWeight: 2,
-        fillColor: '#FF4500',
+        fillColor: fillColor,
         fillOpacity: 0.35,
         map: map,
-        zIndex: 15,
+        zIndex: emergencyNames.includes(name) ? 20 : 15,
       })
 
       polygon.addListener('click', () => {

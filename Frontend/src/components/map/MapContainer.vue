@@ -22,6 +22,8 @@ const powerStore = powerOutageStore()
 
 const isMapReady = ref(false)
 
+let radarInterval: ReturnType<typeof setInterval> | null = null
+
 const loadReports = async () => {
   try {
     const data = await getReports()
@@ -29,35 +31,47 @@ const loadReports = async () => {
     console.log('DADOS CRUS DA API (GET):', data)
 
     if (data && data.districts_Data) {
-      const reportedNames: string[] = []
+      const emergencyNames: string[] = []
+      const scheduledNames: string[] = []
       const counts: Record<string, number> = {}
 
       Object.values(data.districts_Data).forEach((district: any) => {
         const districtName = district.district_Name
-
         const statistic = district.district_Statistics
 
         if (statistic && Array.isArray(statistic)) {
           const powerOutageStat = statistic.find((stat: any) => stat.problem_Category_Id === 1)
 
           if (powerOutageStat) {
-            const amount = powerOutageStat.reported_Amount || 0
+            const amount = powerOutageStat.reported_Amount
             if (amount >= 3) {
-              reportedNames.push(districtName)
+              emergencyNames.push(districtName)
               counts[districtName] = amount
             }
           }
         }
       })
-      powerStore.neighborhoodsNoPower = reportedNames
+      powerStore.neighborhoodsNoPower = emergencyNames
       powerStore.reportCount = counts
 
       console.log(
-        `Sincronizando dados: ${reportedNames.length} bairros reportados em ${mapStore.city}`,
+        `Sincronizando dados: ${scheduledNames.length + emergencyNames.length} bairros reportados em ${mapStore.city}`,
       )
     }
   } catch (e) {
     console.error('Erro ao tentar carregar reportes: ', e)
+  }
+}
+
+const loadScheduledOutages = async () => {
+  try {
+    const response = await fetch(`/data/agendamentos_futuros.json?t=${Date.now()}`)
+    if (response.ok) {
+      const activeSchehduled = await response.json()
+      powerStore.scheduledOutages = activeSchehduled
+    }
+  } catch (e) {
+    console.log('Sem desligamentos programados.')
   }
 }
 
@@ -84,11 +98,13 @@ const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
       'map-canvas',
       targetCity,
       powerStore.neighborhoodsNoPower,
+      powerStore.scheduledOutages,
       lat,
       lng,
     )
 
     await loadReports()
+    await loadScheduledOutages()
 
     isMapReady.value = true
     console.log(`Mapa de ${mapStore.city} foi carregado com sucesso.`)
@@ -99,14 +115,20 @@ const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
 }
 
 watch(
-  () => powerStore.neighborhoodsNoPower,
-  async (newList) => {
+  () => [powerStore.neighborhoodsNoPower, powerStore.scheduledOutages],
+  async ([emergencies, scheduled]) => {
     if (!mapStore.initiateMap && !isMapReady.value) return
 
-    clearAllPolygons()
-
-    if (newList.length > 0) {
-      await neighborhoodOutlines(mapStore.initiateMap!, newList, mapStore.city, false)
+    if (emergencies!.length > 0 || scheduled!.length > 0) {
+      await neighborhoodOutlines(
+        mapStore.initiateMap!,
+        emergencies as string[],
+        scheduled as string[],
+        mapStore.city,
+        false,
+      )
+    } else {
+      clearAllPolygons()
     }
   },
   { deep: true },
@@ -186,11 +208,18 @@ onMounted(async () => {
 
     await loadMap(mapStore.city, lat, lng)
     await checkUserLocation(lat, lng)
+
+    radarInterval = setInterval(() => {
+      loadReports()
+      loadScheduledOutages()
+    }, 60000)
+
     return
   }
 })
 
 onUnmounted(() => {
+  if (radarInterval) clearInterval(radarInterval)
   window.removeEventListener('location-detected', handleLocationDetected)
   window.removeEventListener('neighborhood-detected', handleDetected)
   window.removeEventListener('map-neighborhood-clicked', handleMapClick)

@@ -4,6 +4,7 @@ import { ref, computed } from 'vue'
 export const powerOutageStore = defineStore('powerOutage', () => {
   const neighborhoodsNoPower = ref<string[]>([])
   const stillNoPower = ref<string[]>([])
+  const scheduledOutages = ref<string[]>([])
   const currentResolveIndex = ref(0)
   const reportCount = ref<Record<string, number>>({})
 
@@ -48,6 +49,7 @@ export const powerOutageStore = defineStore('powerOutage', () => {
   return {
     neighborhoodsNoPower,
     stillNoPower,
+    scheduledOutages,
     currentResolveIndex,
     reportCount,
     doReport,

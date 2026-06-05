@@ -611,15 +611,25 @@ body,
 
         .lista-items-bairros-sem-luz-report-badge {
           font-size: 0.5rem;
-          background: rgba(255, 77, 77, 0.15);
-          color: #ffcccc;
           padding: 4px 10px;
           border-radius: 12px;
           font-weight: 800;
           text-transform: uppercase;
-          border: 1px solid rgba(255, 77, 77, 0.3);
           margin-left: auto;
           margin-right: 15px;
+          
+          &.status-alert {
+            border: 1px solid #ff4d4d;
+            color: #ffcccc;
+            background: rgba(255, 77, 77, 0.15);
+          }
+        
+          
+          &.status-scheduled {
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #ffcc00;
+            background: rgba(255, 215, 0, 0.15);
+          }
         }
 
         &.status-safe {
@@ -640,6 +650,7 @@ body,
 
         &.status-scheduled {
           border-left: 6px solid $bg-color-primary;
+          
           &::after {
             background-color: $bg-color-primary;
             box-shadow: 0 0 10px $bg-color-primary;

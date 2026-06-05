@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import { powerOutageStore } from '@/stores/powerOutage'
+import { computed } from 'vue'
 
 const powerStore = powerOutageStore()
 
 const openMenu = defineModel<boolean>('openMenu', { default: true })
+
+const scheduledNeighborhoods = computed(() => {
+  if(!powerStore.scheduledOutages) return []
+  return powerStore.scheduledOutages.filter(
+    (n) => !powerStore.neighborhoodsNoPower.includes(n)
+  )
+})
+
 </script>
 
 <template>
@@ -14,7 +23,7 @@ const openMenu = defineModel<boolean>('openMenu', { default: true })
     </div>
     <ul class="lista-bairros-sem-luz">
       <li
-        v-if="powerStore.neighborhoodsNoPower.length === 0"
+        v-if="powerStore.neighborhoodsNoPower.length === 0 && scheduledNeighborhoods.length === 0"
         class="lista-items-bairros-sem-luz status-safe"
       >
         <strong>Nenhum bairro reportado</strong>
@@ -25,9 +34,19 @@ const openMenu = defineModel<boolean>('openMenu', { default: true })
         class="lista-items-bairros-sem-luz status-alert"
       >
         <strong>{{ n }}</strong>
-        <span class="lista-items-bairros-sem-luz-report-badge" v-if="powerStore.reportCount[n]">
+        <span class="lista-items-bairros-sem-luz-report-badge status-alert" v-if="powerStore.reportCount[n]">
           {{ powerStore.reportCount[n] }}
           {{ powerStore.reportCount[n] > 1 ? 'reportes' : 'reporte' }}
+        </span>
+      </li>
+      <li
+        v-for="n in scheduledNeighborhoods"
+        :key="n"
+        class="lista-items-bairros-sem-luz status-scheduled"
+      >
+        <strong>{{ n }}</strong>
+        <span class="lista-items-bairros-sem-luz-report-badge status-scheduled">
+          Manutenção
         </span>
       </li>
     </ul>

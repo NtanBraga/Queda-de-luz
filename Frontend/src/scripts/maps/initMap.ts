@@ -16,7 +16,8 @@ const dispatchNeighborhoodClick = (name: string, cityToDispatch: string) => {
 export async function initMap(
   elementId: string,
   city: string,
-  neighborhoods: string[],
+  emergencyNeighborhoods: string[],
+  scheduledNeighborhoods: string[],
   userLat?: number,
   userLng?: number,
 ) {
@@ -76,7 +77,7 @@ export async function initMap(
 
     createCityMask(mapOutput, outlineCity)
 
-    await neighborhoodOutlines(mapOutput, neighborhoods, city)
+    await neighborhoodOutlines(mapOutput, emergencyNeighborhoods, scheduledNeighborhoods, city)
 
     if (userLat !== undefined && userLng !== undefined) {
       addUserLocationMarker(mapOutput, city, userLat, userLng).catch((error) => {
