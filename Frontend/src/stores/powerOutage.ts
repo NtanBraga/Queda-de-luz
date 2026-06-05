@@ -1,12 +1,22 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+export interface UpcomingOutage {
+  municipio: string
+  data: string
+  horario_inicio: string
+  horario_fim: string
+  servico: string
+  bairro: string
+}
+
 export const powerOutageStore = defineStore('powerOutage', () => {
   const neighborhoodsNoPower = ref<string[]>([])
   const stillNoPower = ref<string[]>([])
   const scheduledOutages = ref<string[]>([])
   const currentResolveIndex = ref(0)
   const reportCount = ref<Record<string, number>>({})
+  const upcomingOutagesList = ref<UpcomingOutage[]>([])
 
   const doReport = (neighborhood: string) => {
     reportCount.value[neighborhood] = (reportCount.value[neighborhood] || 0) + 1
@@ -51,6 +61,7 @@ export const powerOutageStore = defineStore('powerOutage', () => {
     stillNoPower,
     scheduledOutages,
     currentResolveIndex,
+    upcomingOutagesList,
     reportCount,
     doReport,
     fixIndexResolve,

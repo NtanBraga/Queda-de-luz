@@ -11,6 +11,7 @@ import ChatPanel from './components/chat/ChatPanel.vue'
 import AdsModal from './components/common/AdsModal.vue'
 
 import { fetchAllNeighborhoods } from './scripts/maps/neighborhoodMap'
+import News from './components/common/News.vue'
 
 const mapStore = mapBuildStore()
 
@@ -48,7 +49,7 @@ onMounted(async () => {
 
 <template>
   <div class="above-content">
-    <div class="box-news"><h1 class="placard-h1">News</h1></div>
+    <News />
   </div>
   <div class="below-content">
     <ResolveReportCard />

@@ -65,10 +65,14 @@ const loadReports = async () => {
 
 const loadScheduledOutages = async () => {
   try {
-    const response = await fetch(`/data/agendamentos_futuros.json?t=${Date.now()}`)
-    if (response.ok) {
-      const activeSchehduled = await response.json()
-      powerStore.scheduledOutages = activeSchehduled
+    const resAtivo = await fetch(`/data/agendamentos_ativos.json?t=${Date.now()}`)
+    if (resAtivo.ok) {
+      powerStore.upcomingOutagesList = await resAtivo.json()
+    }
+
+    const resFuturo = await fetch(`/data/agendamentos_futuros.json?t=${Date.now()}`)
+    if (resFuturo.ok) {
+      powerStore.scheduledOutages = await resFuturo.json()
     }
   } catch (e) {
     console.log('Sem desligamentos programados.')

@@ -129,7 +129,11 @@ const fetchNeighborhoodOutline = async (
 
 const normalizerStr = (string: string) => {
   if (!string) return ''
-  return string.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase().trim()
+  return string
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .trim()
 }
 
 export const neighborhoodOutlines = async (
@@ -139,11 +143,12 @@ export const neighborhoodOutlines = async (
   cityName: string,
   fixedCamera: boolean = true,
 ): Promise<void> => {
-  
   const allNeighborhoods = await fetchAllNeighborhoods(cityName)
 
-  const realScheduledNames = scheduledNames.map(scheduledNames => {
-    const found = allNeighborhoods.find(n => normalizerStr(n.name) === normalizerStr(scheduledNames))
+  const realScheduledNames = scheduledNames.map((scheduledNames) => {
+    const found = allNeighborhoods.find(
+      (n) => normalizerStr(n.name) === normalizerStr(scheduledNames),
+    )
     return found ? found.name : scheduledNames
   })
 
@@ -199,7 +204,7 @@ export const neighborhoodOutlines = async (
       let fillColor = '#FFD700'
       let strokeColor = '#FFA500'
 
-      const isEmergency = emergencyNames.some(e => normalizerStr(e) === normalizerStr(name))
+      const isEmergency = emergencyNames.some((e) => normalizerStr(e) === normalizerStr(name))
 
       if (isEmergency) {
         fillColor = '#FF4500'

@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import time
 
 LOG_FILE = "log.txt"
-ARQUIVO_AGENDADOS = 'agendamentos_ativos.json'
+ARQUIVO_AGENDADOS = '../Frontend/public/data/agendamentos_ativos.json'
 ARQUIVO_ENVIAR_FRONTEND = '../Frontend/public/data/agendamentos_futuros.json'
 
 def collectFromCEEE(httpClient):

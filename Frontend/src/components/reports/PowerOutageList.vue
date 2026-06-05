@@ -7,12 +7,9 @@ const powerStore = powerOutageStore()
 const openMenu = defineModel<boolean>('openMenu', { default: true })
 
 const scheduledNeighborhoods = computed(() => {
-  if(!powerStore.scheduledOutages) return []
-  return powerStore.scheduledOutages.filter(
-    (n) => !powerStore.neighborhoodsNoPower.includes(n)
-  )
+  if (!powerStore.scheduledOutages) return []
+  return powerStore.scheduledOutages.filter((n) => !powerStore.neighborhoodsNoPower.includes(n))
 })
-
 </script>
 
 <template>
@@ -34,7 +31,10 @@ const scheduledNeighborhoods = computed(() => {
         class="lista-items-bairros-sem-luz status-alert"
       >
         <strong>{{ n }}</strong>
-        <span class="lista-items-bairros-sem-luz-report-badge status-alert" v-if="powerStore.reportCount[n]">
+        <span
+          class="lista-items-bairros-sem-luz-report-badge status-alert"
+          v-if="powerStore.reportCount[n]"
+        >
           {{ powerStore.reportCount[n] }}
           {{ powerStore.reportCount[n] > 1 ? 'reportes' : 'reporte' }}
         </span>
@@ -45,9 +45,7 @@ const scheduledNeighborhoods = computed(() => {
         class="lista-items-bairros-sem-luz status-scheduled"
       >
         <strong>{{ n }}</strong>
-        <span class="lista-items-bairros-sem-luz-report-badge status-scheduled">
-          Manutenção
-        </span>
+        <span class="lista-items-bairros-sem-luz-report-badge status-scheduled"> Manutenção </span>
       </li>
     </ul>
   </div>
