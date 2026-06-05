@@ -159,6 +159,13 @@ export const neighborhoodOutlines = async (
     if (!currentNameSet.has(name)) {
       polygon.setMap(null)
       polygonsCleaner.delete(name)
+    } else {
+      const isEmergency = emergencyNames.some((e) => normalizerStr(e) === normalizerStr(name))
+      polygon.setOptions({
+        fillColor: isEmergency ? '#FF4500' : '#FFD700',
+        strokeColor: isEmergency ? '#8D0000' : 'FFA500',
+        zIndex: isEmergency ? 20 : 15,
+      })
     }
   }
 
@@ -200,6 +207,8 @@ export const neighborhoodOutlines = async (
 
   geometryToDraw.forEach((paths, name) => {
     if (paths.length > 0) {
+      if (polygonsCleaner.has(name)) return
+
       //Programado
       let fillColor = '#FFD700'
       let strokeColor = '#FFA500'

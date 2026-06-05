@@ -83,6 +83,8 @@ const loadMap = async (targetCity: string, lat?: number, lng?: number) => {
   try {
     isMapReady.value = false
 
+    clearAllPolygons()
+
     if (mapStore.neighborhoodsList.length === 0 || mapStore.city !== targetCity) {
       mapStore.neighborhoodsList = await fetchAllNeighborhoods(targetCity)
     }
