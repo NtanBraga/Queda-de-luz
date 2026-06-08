@@ -10,6 +10,23 @@ const scheduledNeighborhoods = computed(() => {
   if (!powerStore.scheduledOutages) return []
   return powerStore.scheduledOutages.filter((n) => !powerStore.neighborhoodsNoPower.includes(n))
 })
+
+const formatName = (name: string) => {
+  if (!name) return ''
+
+  const except = ['de', 'da', 'do', 'das', 'dos', 'e']
+
+  return name
+    .toLowerCase()
+    .split(' ')
+    .map((word, index) => {
+      if (index !== 0 && except.includes(word)) {
+        return word
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1)
+    })
+    .join(' ')
+}
 </script>
 
 <template>
@@ -30,7 +47,7 @@ const scheduledNeighborhoods = computed(() => {
         :key="n"
         class="lista-items-bairros-sem-luz status-alert"
       >
-        <strong>{{ n }}</strong>
+        <strong>{{ formatName(n) }}</strong>
         <span
           class="lista-items-bairros-sem-luz-report-badge status-alert"
           v-if="powerStore.reportCount[n]"
@@ -44,7 +61,7 @@ const scheduledNeighborhoods = computed(() => {
         :key="n"
         class="lista-items-bairros-sem-luz status-scheduled"
       >
-        <strong>{{ n }}</strong>
+        <strong>{{ formatName(n) }}</strong>
         <span class="lista-items-bairros-sem-luz-report-badge status-scheduled"> Manutenção </span>
       </li>
     </ul>
