@@ -136,6 +136,38 @@ const normalizerStr = (string: string) => {
     .trim()
 }
 
+const getNeighborhoodStyle = (
+  name: string,
+  emergenciesSet: Set<string>,
+  scheduledSet: Set<string>,
+) => {
+  const normalizedName = normalizerStr(name)
+  const isEmergency = emergenciesSet.has(normalizedName)
+  const isScheduled = scheduledSet.has(normalizedName)
+  const isBoth = isEmergency && isScheduled
+
+  let fillColor = '#FFD700'
+  let strokeColor = '#FFA500'
+  let strokeWeight = 2
+  let strokeOpacity = 0.5
+  let zIndex = 15
+
+  if (isBoth) {
+    fillColor = '#FF4500'
+    strokeColor = '#FFD700'
+    strokeWeight = 5
+    strokeOpacity = 1.0
+    zIndex = 25
+  } else if (isEmergency) {
+    fillColor = '#FF4500'
+    strokeColor = '#8B0000'
+    strokeWeight = 2
+    zIndex = 20
+  }
+
+  return { fillColor, strokeColor, strokeWeight, strokeOpacity, zIndex }
+}
+
 export const neighborhoodOutlines = async (
   map: google.maps.Map,
   emergencyNames: string[],
@@ -155,17 +187,16 @@ export const neighborhoodOutlines = async (
   const allActiveNames = [...new Set([...emergencyNames, ...realScheduledNames])]
   const currentNameSet = new Set(allActiveNames)
 
+  const normalizedEmergencies = new Set(emergencyNames.map(normalizerStr))
+  const normalizedScheduled = new Set(scheduledNames.map(normalizerStr))
+
+  //Atualiza poligonos existentes
   for (const [name, polygon] of polygonsCleaner.entries()) {
     if (!currentNameSet.has(name)) {
       polygon.setMap(null)
       polygonsCleaner.delete(name)
     } else {
-      const isEmergency = emergencyNames.some((e) => normalizerStr(e) === normalizerStr(name))
-      polygon.setOptions({
-        fillColor: isEmergency ? '#FF4500' : '#FFD700',
-        strokeColor: isEmergency ? '#8D0000' : 'FFA500',
-        zIndex: isEmergency ? 20 : 15,
-      })
+      polygon.setOptions(getNeighborhoodStyle(name, normalizedEmergencies, normalizedScheduled))
     }
   }
 
@@ -209,26 +240,13 @@ export const neighborhoodOutlines = async (
     if (paths.length > 0) {
       if (polygonsCleaner.has(name)) return
 
-      //Programado
-      let fillColor = '#FFD700'
-      let strokeColor = '#FFA500'
-
-      const isEmergency = emergencyNames.some((e) => normalizerStr(e) === normalizerStr(name))
-
-      if (isEmergency) {
-        fillColor = '#FF4500'
-        strokeColor = '#8B0000'
-      }
+      const styleOptions = getNeighborhoodStyle(name, normalizedEmergencies, normalizedScheduled)
 
       const polygon = new google.maps.Polygon({
         paths: paths,
-        strokeColor: strokeColor,
-        strokeOpacity: 0.5,
-        strokeWeight: 2,
-        fillColor: fillColor,
         fillOpacity: 0.35,
         map: map,
-        zIndex: emergencyNames.includes(name) ? 20 : 15,
+        ...styleOptions,
       })
 
       polygon.addListener('click', () => {

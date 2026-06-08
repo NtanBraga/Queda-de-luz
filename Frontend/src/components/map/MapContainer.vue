@@ -32,7 +32,6 @@ const loadReports = async () => {
 
     if (data && data.districts_Data) {
       const emergencyNames: string[] = []
-      const scheduledNames: string[] = []
       const counts: Record<string, number> = {}
 
       Object.values(data.districts_Data).forEach((district: any) => {
@@ -55,7 +54,7 @@ const loadReports = async () => {
       powerStore.reportCount = counts
 
       console.log(
-        `Sincronizando dados: ${scheduledNames.length + emergencyNames.length} bairros reportados em ${mapStore.city}`,
+        `Sincronizando dados: ${emergencyNames.length} bairros reportados em ${mapStore.city}`,
       )
     }
   } catch (e) {

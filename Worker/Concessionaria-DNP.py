@@ -278,5 +278,5 @@ if __name__ == "__main__":
             main()
         except Exception as e:
             print(f"Erro fatal durante a varredura:{e}")
-        time.sleep(60)
+        time.sleep(1800)
 
