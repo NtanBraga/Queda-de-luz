@@ -7,10 +7,36 @@ import re
 import json
 from datetime import datetime, timedelta
 import time
+import unicodedata
 
 LOG_FILE = "log.txt"
 ARQUIVO_AGENDADOS = '../Frontend/public/data/agendamentos_ativos.json'
 ARQUIVO_ENVIAR_FRONTEND = '../Frontend/public/data/agendamentos_futuros.json'
+
+CORRECOES_CEEE = {
+    "TRES FIQUEIRAS": ["TRES FIGUEIRAS"],
+    "SAO JOSE": ["VILA SAO JOSE"],
+    "CENTRO": ["CENTRO HISTORICO"],
+    "M. DE VENTO": ["MOINHOS DE VENTO"],
+    "M DE VENTO": ["MOINHOS DE VENTO"],
+    "SANTA TERESA": ["SANTA TEREZA"],
+    "APARICIO BORGES": ["CORONEL APARICIO BORGES"],
+    "ABERTA MORROS": ["ABERTA DOS MORROS"],
+    "JARDIM ITU SABARA": ["JARDIM ITU", "JARDIM SABARA"],
+    "PROTASIO ALVES": ["MORRO SANTANA"]
+}
+
+def normalizeNeighborhood(name):
+    if not name:
+        return []
+
+    cleanName = unicodedata.normalize('NFKD', name).encode('ASCII', 'ignore').decode('utf-8')
+    cleanName = cleanName.replace('-', ' ').replace('.',' ')
+    cleanName = ' '.join(cleanName.split()).upper().strip()
+    if cleanName in CORRECOES_CEEE:
+        return CORRECOES_CEEE[cleanName]
+    return [cleanName]
+
 
 def collectFromCEEE(httpClient):
 
@@ -79,14 +105,16 @@ def FormatacaoDeDadosPDF(PDFUrl, httpClient):
                         if len(dados_limpos) >=7:
                             if dados_limpos[0].upper() == "PORTO ALEGRE":
                                 horaInicio, horaFim = tratamentoHorarios(dados_limpos[3])
-                                dadosFinais.append({
-                                    "municipio": dados_limpos[0],
-                                    "data": dados_limpos[1],
-                                    "horario_inicio": horaInicio,
-                                    "horario_fim": horaFim,
-                                    "servico": dados_limpos[4],
-                                    "bairro": dados_limpos[6].upper()
-                                })
+                                bairro_expandido = normalizeNeighborhood(dados_limpos[6])
+                                for bairro_nome in bairro_expandido:
+                                    dadosFinais.append({
+                                        "municipio": dados_limpos[0],
+                                        "data": dados_limpos[1],
+                                        "horario_inicio": horaInicio,
+                                        "horario_fim": horaFim,
+                                        "servico": dados_limpos[4],
+                                        "bairro": bairro_nome
+                                    })
         return dadosFinais
     except Exception as e:
         print(f"Erro ao processar PDF {PDFUrl}: {e}")

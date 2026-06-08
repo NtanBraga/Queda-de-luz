@@ -11,6 +11,50 @@ export interface NeighborhoodInfo {
   type: string
 }
 
+//Evitar erro de 
+
+const normalizerStr = (string: string) => {
+  if (!string) return ''
+  return string
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .trim()
+}
+
+const getNeighborhoodStyle = (
+  name: string,
+  emergenciesSet: Set<string>,
+  scheduledSet: Set<string>,
+) => {
+  const normalizedName = normalizerStr(name)
+  const isEmergency = emergenciesSet.has(normalizedName)
+  const isScheduled = scheduledSet.has(normalizedName)
+  const isBoth = isEmergency && isScheduled
+
+  let fillColor = '#FFD700'
+  let strokeColor = '#FFA500'
+  let strokeWeight = 2
+  let strokeOpacity = 0.5
+  let zIndex = 15
+
+  if (isBoth) {
+    fillColor = '#FF4500'
+    strokeColor = '#FFD700'
+    strokeWeight = 2
+    strokeOpacity = 1.0
+    zIndex = 25
+  } else if (isEmergency) {
+    fillColor = '#FF4500'
+    strokeColor = '#8B0000'
+    strokeWeight = 2
+    zIndex = 20
+  }
+
+  return { fillColor, strokeColor, strokeWeight, strokeOpacity, zIndex }
+}
+
+
 export const clearAllPolygons = () => {
   polygonsCleaner.forEach((p) => {
     if (p) p.setMap(null)
@@ -127,46 +171,6 @@ const fetchNeighborhoodOutline = async (
   }
 }
 
-const normalizerStr = (string: string) => {
-  if (!string) return ''
-  return string
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toUpperCase()
-    .trim()
-}
-
-const getNeighborhoodStyle = (
-  name: string,
-  emergenciesSet: Set<string>,
-  scheduledSet: Set<string>,
-) => {
-  const normalizedName = normalizerStr(name)
-  const isEmergency = emergenciesSet.has(normalizedName)
-  const isScheduled = scheduledSet.has(normalizedName)
-  const isBoth = isEmergency && isScheduled
-
-  let fillColor = '#FFD700'
-  let strokeColor = '#FFA500'
-  let strokeWeight = 2
-  let strokeOpacity = 0.5
-  let zIndex = 15
-
-  if (isBoth) {
-    fillColor = '#FF4500'
-    strokeColor = '#FFD700'
-    strokeWeight = 5
-    strokeOpacity = 1.0
-    zIndex = 25
-  } else if (isEmergency) {
-    fillColor = '#FF4500'
-    strokeColor = '#8B0000'
-    strokeWeight = 2
-    zIndex = 20
-  }
-
-  return { fillColor, strokeColor, strokeWeight, strokeOpacity, zIndex }
-}
 
 export const neighborhoodOutlines = async (
   map: google.maps.Map,

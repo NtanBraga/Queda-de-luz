@@ -9,16 +9,16 @@ import re
 import difflib
 
 CORRECOES_CEEE = {
-    "TRES FIQUEIRAS": "TRES FIGUEIRAS",
-    "SAO JOSE": "VILA SAO JOSE",
-    "CENTRO": "CENTRO HISTORICO",
-    "M. DE VENTO": "MOINHOS DE VENTO",
-    "M DE VENTO": "MOINHOS DE VENTO",
-    "SANTA TERESA": "SANTA TEREZA",
-    "APARICIO BORGES": "CORONEL APARICIO BORGES",
-    "ABERTA MORROS": "ABERTA DOS MORROS",
-    "JARDIM ITU SABARA": "JARDIM ITU",
-    "PROTASIO ALVES": "MORRO SANTANA"
+    "TRES FIQUEIRAS": ["TRES FIGUEIRAS"],
+    "SAO JOSE": ["VILA SAO JOSE"],
+    "CENTRO": ["CENTRO HISTORICO"],
+    "M. DE VENTO": ["MOINHOS DE VENTO"],
+    "M DE VENTO": ["MOINHOS DE VENTO"],
+    "SANTA TERESA": ["SANTA TEREZA"],
+    "APARICIO BORGES": ["CORONEL APARICIO BORGES"],
+    "ABERTA MORROS": ["ABERTA DOS MORROS"],
+    "JARDIM ITU SABARA": ["JARDIM ITU", "JARDIM SABARA"],
+    "PROTASIO ALVES": ["MORRO SANTANA"]
 }
 
 ARQUIVO_ESTADO = "estado_quedas.json"
@@ -95,29 +95,42 @@ def normalizar_nome(nome):
 def motor_bairro_nome(nome_sujo, dicionario_bairro):
     nome_limpo = normalizar_nome(nome_sujo)
 
-    if nome_limpo in dicionario_bairro:
-        return dicionario_bairro[nome_limpo], nome_limpo
-    
+    bairros_processar = []
+
     if nome_limpo in CORRECOES_CEEE:
-        nome_corrigido = CORRECOES_CEEE[nome_limpo]
-        if nome_corrigido in dicionario_bairro:
-            return dicionario_bairro[nome_corrigido], nome_corrigido
-        
-    for erro, correcao in CORRECOES_CEEE.items():
-        if erro in nome_limpo:
-            if correcao in dicionario_bairro:
-                return dicionario_bairro[correcao], correcao
-            
+        bairros_processar = CORRECOES_CEEE[nome_limpo]
+    else:
+        encontrou_erro = False
+        for erro, correcao in CORRECOES_CEEE.items():
+            if erro in nome_limpo:
+                bairros_processar = correcao
+                encontrou_erro = True
+                break
+        if not encontrou_erro:
+            bairros_processar = [nome_limpo]
+    resultados = []
     nome_oficiais = list(dicionario_bairro.keys())
-    matches = difflib.get_close_matches(nome_limpo, nome_oficiais, n=1, cutoff=0.75)
-    if matches:
-        return dicionario_bairro[matches[0]], matches[0]
-    
-    for bairros_osm, d_id in dicionario_bairro.items():
-        if bairros_osm in nome_limpo:
-            return d_id, bairros_osm
-    
-    return None, nome_limpo
+
+
+    for b_nome in bairros_processar:
+        if b_nome in dicionario_bairro:
+            resultados.append((dicionario_bairro[b_nome], b_nome))
+            continue
+        matches = difflib.get_close_matches(nome_limpo, nome_oficiais, n=1, cutoff=0.75)
+        if matches:
+            resultados.append((dicionario_bairro[matches[0]], matches[0]))
+            continue
+
+        encontrou_parcial = False
+        for bairros_osm, d_id in dicionario_bairro.items():
+            if bairros_osm in nome_limpo:
+                resultados.append((d_id, bairros_osm))
+                encontrou_parcial = True
+                break
+        if not encontrou_parcial:
+            resultados.append((None, b_nome))
+
+    return resultados
 
 def mapear_bairros(cidade, httpClient):
     print(f"Mapeando ids da cidade ${cidade} para Overpass...")
@@ -243,13 +256,14 @@ def main():
 
         for bairro_bruto in bairros_separados:
 
-            district_id, nome_oficial = motor_bairro_nome(bairro_bruto, dicionario_bairros)
+            resultados = motor_bairro_nome(bairro_bruto, dicionario_bairros)
 
-            if district_id:
-                district_id_string = str(district_id)
-                quedasAtuais[district_id_string] = quedasAtuais.get(district_id_string, 0) + 1
-            else:
-                print(f"Aviso: Bairro {bairro_bruto} (Limpo {nome_oficial}) não foi encontrado no dicionario!")
+            for district_id, nome_oficial in resultados:
+                if district_id:
+                    district_id_string = str(district_id)
+                    quedasAtuais[district_id_string] = quedasAtuais.get(district_id_string, 0) + 1
+                else:
+                    print(f"Aviso: Bairro {bairro_bruto} (Limpo {nome_oficial}) não foi encontrado no dicionario!")
 
 
     todos_ids = set(quedasAnteriores.keys()).union(set(quedasAtuais.keys()))
